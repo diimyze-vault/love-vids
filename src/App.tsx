@@ -24,6 +24,11 @@ function App() {
     // Listen for changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      
+      // Clear hash from URL if present (cleaner UX)
+      if (session && window.location.hash) {
+          window.history.replaceState(null, '', window.location.pathname);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -32,6 +37,9 @@ function App() {
   const handleLogin = async () => {
      const { error } = await supabase.auth.signInWithOAuth({
        provider: 'google',
+       options: {
+         redirectTo: window.location.origin
+       }
      });
      if (error) console.error('Error logging in:', error.message);
   };
