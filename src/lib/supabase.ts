@@ -14,11 +14,11 @@ const urlStart = supabaseUrl ? supabaseUrl.substring(0, 15) + '...' : 'MISSING';
 const keyStart = supabaseAnonKey ? supabaseAnonKey.substring(0, 5) + '...' : 'MISSING';
 console.log(`[Supabase Init] URL: ${urlStart}, Key: ${keyStart}`);
 
-export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     flowType: 'pkce',
     autoRefreshToken: true,
     detectSessionInUrl: true,
     persistSession: true,
-  }
+  },
 });

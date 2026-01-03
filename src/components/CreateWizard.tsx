@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
-export function CreateWizard({ onClose, isLoggedIn, onLogin }: { onClose: () => void, isLoggedIn?: boolean, onLogin?: () => void }) {
-  // If logged in, start at Step 2 (Basics), else Step 1 (Auth)
-  const [step, setStep] = useState(isLoggedIn ? 2 : 1);
+export function CreateWizard({ onClose, isLoggedIn, onLogin, isAuthLoading, resetMode, onPasswordUpdated }: { onClose: () => void, isLoggedIn?: boolean, onLogin?: () => void, isAuthLoading?: boolean, resetMode?: boolean, onPasswordUpdated?: () => void }) {
+  // Step 99 is "Reset Password" mode
+  const [step, setStep] = useState(resetMode ? 99 : (isLoggedIn ? 2 : 1));
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Form State
@@ -10,10 +11,106 @@ export function CreateWizard({ onClose, isLoggedIn, onLogin }: { onClose: () => 
   const [file, setFile] = useState<File | null>(null);
   const [selectedVibe, setSelectedVibe] = useState('');
   
+  // Sync step with resetMode if it changes after mount
+  useEffect(() => {
+      if (resetMode) {
+          setStep(99);
+      }
+  }, [resetMode]);
+  
+
+// ... inside component
+
   // Auth State
   const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
-  const [showOtp, setShowOtp] = useState(false);
+  const [password, setPassword] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [authMessage, setAuthMessage] = useState<{ type: 'error' | 'success', content: React.ReactNode } | null>(null);
+
+  const handleResetPassword = async () => {
+    if (!email) {
+        setAuthMessage({ type: 'error', content: 'Please enter your email address first.' });
+        return;
+    }
+    // Set a local flag to detect this flow when the user returns (if on same device)
+    localStorage.setItem('is_resetting_password', 'true');
+    
+    // We try to use the query param method too, just in case
+    const redirectUrl = window.location.origin + '?reset_flow=true';
+    console.log('[CreateWizard] Sending reset email with redirect:', redirectUrl);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectUrl,
+    });
+    setIsLoggingIn(false);
+    if (error) {
+        setAuthMessage({ type: 'error', content: error.message });
+    } else {
+        setAuthMessage({ type: 'success', content: 'Reset link sent! Check your email to set a password.' });
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+      setIsLoggingIn(true);
+      const { error } = await supabase.auth.updateUser({ password: password });
+      setIsLoggingIn(false);
+      
+      if (error) {
+          setAuthMessage({ type: 'error', content: error.message });
+      } else {
+          setAuthMessage({ type: 'success', content: 'Password updated successfully! You are now logged in.' });
+          if (onPasswordUpdated) onPasswordUpdated();
+          setTimeout(() => setStep(2), 1500);
+      }
+  };
+
+  const handleEmailAuth = async () => {
+     if(!email || !password) return;
+     setIsLoggingIn(true);
+     setAuthMessage(null);
+     
+     if (isSignUp) {
+       // Sign Up Logic
+       const { error } = await supabase.auth.signUp({
+         email,
+         password,
+       });
+       setIsLoggingIn(false);
+       if (error) {
+         if (error.message.includes('already registered')) {
+             setAuthMessage({ 
+                 type: 'error', 
+                 content: 'This email is already registered. Please login with password or use Google.'
+             });
+             setIsSignUp(false); // Fuse: Switch to login automatically
+         } else {
+             setAuthMessage({ type: 'error', content: error.message });
+         }
+       } else {
+         setAuthMessage({ type: 'success', content: 'Account created! Please check your email to confirm.' });
+         setIsSignUp(false);
+       }
+     } else {
+       // Login Logic
+       const { error } = await supabase.auth.signInWithPassword({
+         email,
+         password
+       });
+       setIsLoggingIn(false);
+       if (error) {
+           setAuthMessage({ 
+               type: 'error', 
+               content: 'Invalid credentials. Please check your password or try Google login.'
+           });
+       } else {
+           setStep(2);
+       }
+     }
+  };
+
+// ... render content ...
+
+
 
   // Payment State
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success'>('idle');
@@ -41,13 +138,7 @@ export function CreateWizard({ onClose, isLoggedIn, onLogin }: { onClose: () => 
     }
   };
   
-  const handleEmailAuth = () => {
-     if(email) setShowOtp(true);
-  };
-  
-  const handleVerifyFn = () => {
-      setStep(2);
-  };
+  /* Removed OTP Logic */
 
   return (
     <div className="wizard-overlay">
@@ -61,22 +152,21 @@ export function CreateWizard({ onClose, isLoggedIn, onLogin }: { onClose: () => 
              <p className="auth-subtitle">Login to start creating your viral video.</p>
              
              <div className="auth-container">
-               <button className="google-btn" onClick={() => { 
+               <button className="google-btn" disabled={isAuthLoading} onClick={() => { 
                    if (onLogin) onLogin();
                    else {
                      setStep(2); 
                    }
                }}>
-                 <img src="https://lh3.googleusercontent.com/COxitqgJr1sJnIDe8-jiKhxDx1FrYbtRHKJ9z_hELisAlapwE9LUPh6fcXIfb5vwpbMl4xl9H9TRFPc5NOO8Sb3VSgIBrfRYvW6cUA" alt="G" />
-                 Continue with Google
+                 {isAuthLoading ? <div className="spinner-small" style={{borderTopColor: '#666', marginRight: '0.5rem'}}></div> : <img src="https://lh3.googleusercontent.com/COxitqgJr1sJnIDe8-jiKhxDx1FrYbtRHKJ9z_hELisAlapwE9LUPh6fcXIfb5vwpbMl4xl9H9TRFPc5NOO8Sb3VSgIBrfRYvW6cUA" alt="G" />}
+                 {isAuthLoading ? 'Connecting...' : 'Continue with Google'}
                </button>
                
                <div className="auth-divider">
                  <span>OR</span>
                </div>
 
-               {!showOtp ? (
-                 <div className="email-auth">
+               <div className="email-auth">
                    <div className="form-group">
                      <label>Email Address</label>
                      <input 
@@ -87,8 +177,22 @@ export function CreateWizard({ onClose, isLoggedIn, onLogin }: { onClose: () => 
                        onChange={(e) => setEmail(e.target.value)}
                      />
                    </div>
+                   <div className="form-group">
+                     <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem'}}>
+                       <label style={{marginBottom: 0}}>Password</label>
+                       {!isSignUp && <span onClick={handleResetPassword} style={{fontSize: '0.8rem', color: '#666', cursor: 'pointer', textDecoration: 'underline'}}>Forgot?</span>}
+                     </div>
+                     <input 
+                       type="password" 
+                       className="wizard-input"
+                       placeholder="********"
+                       value={password}
+                       onChange={(e) => setPassword(e.target.value)}
+                     />
+                   </div>
                    
                    {/* Referral Code Logic */}
+                   {/* Referral code section not modified */}
                    <div className="referral-input-section">
                      <details className="referral-details">
                        <summary>Have a referral code?</summary>
@@ -100,30 +204,83 @@ export function CreateWizard({ onClose, isLoggedIn, onLogin }: { onClose: () => 
                      </details>
                    </div>
                    
-                   <button className="wizard-btn outline" disabled={!email} onClick={handleEmailAuth}>
-                     Send Login Code
+                   {authMessage && (
+                        <div style={{
+                            color: authMessage.type === 'error' ? '#d32f2f' : '#2e7d32', 
+                            fontSize: '0.9rem', 
+                            marginBottom: '1rem', 
+                            padding: '0.75rem', 
+                            background: authMessage.type === 'error' ? '#ffebee' : '#e8f5e9', 
+                            borderRadius: '8px', 
+                            textAlign: 'center', 
+                            border: `1px solid ${authMessage.type === 'error' ? '#ffcdd2' : '#c8e6c9'}`
+                        }}>
+                            {authMessage.content}
+                        </div>
+                   )}
+                   
+                   <button className="wizard-btn outline" disabled={!email || !password || isLoggingIn} onClick={handleEmailAuth} style={{display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem'}}>
+                     {isLoggingIn && <div className="spinner-small" style={{borderTopColor: 'var(--primary)', width: '20px', height: '20px', borderWidth: '2px', marginBottom: 0}}></div>}
+                     {isLoggingIn ? 'Processing...' : (isSignUp ? 'Create Account' : 'Login with Password')}
                    </button>
-                 </div>
-               ) : (
-                 <div className="otp-auth fade-in">
-                   <div className="form-group">
-                      <label>Enter Code sent to {email}</label>
-                      <input 
-                        type="text" 
-                        className="wizard-input otp-input"
-                        placeholder="123456"
-                        maxLength={6}
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value)}
-                      />
-                   </div>
-                   <button className="wizard-btn primary-glow" disabled={otp.length < 4} onClick={handleVerifyFn}>
-                     Verify & Continue
-                   </button>
-                 </div>
-               )}
+                   
+                   <p 
+                     style={{fontSize: '0.8rem', textAlign: 'center', marginTop: '1rem', color: '#666', cursor: 'pointer', textDecoration: 'underline'}}
+                     onClick={() => setIsSignUp(!isSignUp)}
+                   >
+                     {isSignUp ? 'Already have an account? Login' : 'Need an account? Sign Up'}
+                   </p>
+               </div>
              </div>
            </div>
+        )}
+
+
+        {/* STEP 99: RESET PASSWORD (Only for Recovery Flow) */}
+        {step === 99 && (
+            <div className="wizard-step fade-in">
+                <h2>Set New Password 🔐</h2>
+                <div style={{background: '#e3f2fd', color: '#1565c0', padding: '0.75rem', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.9rem', textAlign: 'center'}}>
+                    <strong>You are securely logged in.</strong><br/>
+                    Update your password below, or close this window to access your dashboard.
+                </div>
+                
+                <div className="email-auth">
+                    <div className="form-group">
+                        <label>New Password</label>
+                        <input 
+                            type="password" 
+                            className="wizard-input" 
+                            placeholder="Current mood: Secure"
+                            value={password}
+                            onChange={e => setPassword(e.target.value)}
+                        />
+                    </div>
+                    
+                    {authMessage && (
+                        <div style={{
+                            color: authMessage.type === 'error' ? '#d32f2f' : '#2e7d32', 
+                            fontSize: '0.9rem', 
+                            marginBottom: '1rem', 
+                            padding: '0.75rem', 
+                            background: authMessage.type === 'error' ? '#ffebee' : '#e8f5e9', 
+                            borderRadius: '8px', 
+                            textAlign: 'center', 
+                            border: `1px solid ${authMessage.type === 'error' ? '#ffcdd2' : '#c8e6c9'}`
+                        }}>
+                            {authMessage.content}
+                        </div>
+                    )}
+
+                    <button className="wizard-btn" onClick={handleUpdatePassword} disabled={!password || isLoggingIn}>
+                        {isLoggingIn ? 'Updating...' : 'Update Password & Login'}
+                    </button>
+                    
+                    <button className="wizard-btn secondary" style={{marginTop: '1rem'}} onClick={onClose}>
+                        I'm good, Go to Dashboard
+                    </button>
+                </div>
+            </div>
         )}
 
         {step === 2 && (
