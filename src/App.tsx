@@ -24,11 +24,6 @@ function App() {
     // Listen for changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      
-      // Clear hash from URL if present (cleaner UX)
-      if (session && window.location.hash) {
-          window.history.replaceState(null, '', window.location.pathname);
-      }
     });
 
     return () => subscription.unsubscribe();
