@@ -8,6 +8,8 @@ import { CreateWizard } from './components/CreateWizard'
 import { Dashboard } from './components/Dashboard'
 import { supabase } from './lib/supabase'
 import type { User } from '@supabase/supabase-js'
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 
 function App() {
   const [showWizard, setShowWizard] = useState(false);
@@ -22,8 +24,17 @@ function App() {
     });
 
     // Listen for changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth Event:', event, session); 
       setUser(session?.user ?? null);
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+         // Force cleanup of ?code= in URL if Supabase doesn't do it automatically
+         const url = new URL(window.location.href);
+         if (url.searchParams.has('code')) {
+             url.searchParams.delete('code');
+             window.history.replaceState({}, '', url.toString());
+         }
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -82,6 +93,8 @@ function App() {
           onLogin={handleLogin}
         />
       )}
+      <Analytics />
+      <SpeedInsights />
     </>
   )
 }
