@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export function Dashboard({ onCreateClick, onLogout }: { onCreateClick: () => void, onLogout: () => void }) {
+export function Dashboard({ onCreateClick, onLogout, userEmail }: { onCreateClick: () => void, onLogout: () => void, userEmail?: string }) {
   // Mock data for user's videos
   const [videos] = useState([
     { id: 1, title: "Birthday Roast for Mike", date: "2 mins ago", status: "Processing", thumbnail: "" },
@@ -18,7 +18,7 @@ export function Dashboard({ onCreateClick, onLogout }: { onCreateClick: () => vo
         </div>
         <div className="dash-user-controls">
            <button className="dash-referral-btn" onClick={() => setShowReferral(true)}>🎁 Invite Friends</button>
-           <span className="user-email">user@example.com</span>
+           <span className="user-email">{userEmail || 'user@example.com'}</span>
            <button className="dash-logout" onClick={onLogout}>Logout</button>
         </div>
       </header>
@@ -30,6 +30,64 @@ export function Dashboard({ onCreateClick, onLogout }: { onCreateClick: () => vo
             + Create New Video
           </button>
         </div>
+
+        {/* REWARDS SECTION */}
+        <section className="rewards-section">
+           <h2>Rewards 🏆</h2>
+           <div className="rewards-grid">
+              
+              {/* Reward Card 1 */}
+              <div className="reward-card">
+                 <div className="circular-progress">
+                    <svg viewBox="0 0 36 36" className="circular-chart orange">
+                      <path className="circle-bg"
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                      <path className="circle"
+                        strokeDasharray="60, 100" // 3 out of 5 = 60%
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                    </svg>
+                    <div className="reward-icon">🎟️</div>
+                 </div>
+                 <div className="reward-info">
+                   <h3>Free HD Video</h3>
+                   <p><strong>3</strong> / 5 Referrals</p>
+                   <span className="reward-status locked">2 more to unlock</span>
+                 </div>
+              </div>
+
+              {/* Reward Card 2 */}
+              <div className="reward-card">
+                 <div className="circular-progress">
+                    <svg viewBox="0 0 36 36" className="circular-chart purple">
+                      <path className="circle-bg"
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                      <path className="circle"
+                        strokeDasharray="30, 100" // 3 out of 10 = 30%
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                    </svg>
+                    <div className="reward-icon">🎬</div>
+                 </div>
+                 <div className="reward-info">
+                   <h3>Free 4K Epic</h3>
+                   <p><strong>3</strong> / 10 Referrals</p>
+                   <span className="reward-status locked">7 more to unlock</span>
+                 </div>
+              </div>
+
+           </div>
+        </section>
 
         <section className="dash-videos-section">
           <h2>Your Videos (Persistent Gallery)</h2>
@@ -89,15 +147,27 @@ export function Dashboard({ onCreateClick, onLogout }: { onCreateClick: () => vo
                 <div className="referral-modal-content" onClick={e => e.stopPropagation()}>
                     <button className="close-player" onClick={() => setShowReferral(false)}>×</button>
                     <h2>Invite Friends 🎁</h2>
-                    <p>Share the vibe and get 2 free credits for every friend who joins!</p>
+                    <p>Share your code and get rewards!</p>
                     
-                    <div className="qr-code-mock">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://vibevids.ai/ref/user123" alt="Referral QR" />
+                    <div className="referral-code-reveal-section">
+                        <div className="code-display">
+                           <span className="code-label">YOUR CODE:</span>
+                           <RevealCode code="VIBE-MIKE-2024" />
+                        </div>
+                        <p className="mini-hint">Share this code with friends to enter during signup.</p>
                     </div>
-                    
-                    <div className="referral-link-box">
-                        <input readOnly value="vibevids.ai/ref/user123" />
-                        <button>Copy</button>
+
+                    <div className="referral-link-section" style={{marginTop: '2rem'}}>
+                        <p style={{marginBottom: '0.5rem', fontWeight: 600, color: '#555', fontSize: '0.9rem'}}>Or share via link:</p>
+                        <div className="referral-link-box">
+                            <input readOnly value="vibevids.ai/ref/user123" />
+                            <button onClick={(e) => {
+                                const btn = e.target as HTMLButtonElement;
+                                const originalText = btn.innerText;
+                                btn.innerText = 'Copied!';
+                                setTimeout(() => btn.innerText = originalText, 2000);
+                            }}>Copy</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -105,4 +175,18 @@ export function Dashboard({ onCreateClick, onLogout }: { onCreateClick: () => vo
       </main>
     </div>
   );
+}
+
+function RevealCode({ code }: { code: string }) {
+   const [revealed, setRevealed] = useState(false);
+   
+   return (
+      <div className="reveal-wrapper" onClick={() => setRevealed(true)}>
+          {revealed ? (
+             <span className="actual-code">{code}</span>
+          ) : (
+             <span className="masked-code">••••••••••••• <span className="click-reveal">(Tap to reveal)</span></span>
+          )}
+      </div>
+   );
 }

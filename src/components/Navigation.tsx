@@ -29,7 +29,7 @@ export function Footer() {
         </div>
       </div>
       <div className="footer-bottom">
-        <p>&copy; 2024 VibeVids AI. All rights served.</p>
+        <p>&copy; {new Date().getFullYear()} VibeVids AI. All rights served.</p>
       </div>
     </footer>
   );

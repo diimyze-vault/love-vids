@@ -758,6 +758,7 @@
   color: white;
   padding: 5rem 0 2rem;
   margin-top: 6rem;
+  width: 100%;
 }
 
 .footer-content {
@@ -1013,22 +1014,42 @@ textarea {
   padding-left: 0.8em; /* Offset for letter-spacing */
 }
 
+/* Navbar Buttons */
+.nav-login {
+  background: transparent;
+  color: var(--text-main);
+  border: 1px solid rgba(0,0,0,0.1);
+  padding: 0.5rem 1.25rem;
+  border-radius: 50px;
+  margin-right: 0.75rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.nav-login:hover {
+  background: var(--text-main);
+  color: white;
+  border-color: transparent;
+}
+
 /* Dashboard Referral */
 .dash-referral-btn {
-  background: linear-gradient(45deg, #FFD700, #FFA500);
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
   border: none;
   padding: 0.5rem 1rem;
   border-radius: 20px;
   color: #fff;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   margin-right: 1rem;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 5px rgba(99, 102, 241, 0.3);
   transition: transform 0.2s;
 }
 
 .dash-referral-btn:hover {
-  transform: scale(1.05);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.4);
 }
 
 .thumb-play-icon {
@@ -1162,6 +1183,204 @@ textarea {
   cursor: pointer;
 }
 
+/* Referral Input in Wizard */
+.referral-input-section {
+  margin-bottom: 1.5rem;
+}
+
+.referral-details {
+  cursor: pointer;
+  color: var(--primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.referral-details summary {
+  margin-bottom: 0.5rem;
+  user-select: none;
+  outline: none;
+}
+
+.referral-code-input {
+  margin-top: 0.5rem;
+  border-style: dashed;
+}
+
+/* Landing Page Hint */
+.referral-hint {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.9em;
+  color: var(--primary);
+  opacity: 0.9;
+  font-weight: 600;
+}
+
+/* Dashboard Rewards Section */
+.rewards-section {
+  margin-bottom: 3rem;
+}
+
+.rewards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.reward-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(0,0,0,0.05);
+  transition: transform 0.2s;
+}
+
+.reward-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.circular-progress {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.circular-chart {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.circle-bg {
+  fill: none;
+  stroke: #eee;
+  stroke-width: 2.5;
+}
+
+.circle {
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  animation: progress 1s ease-out forwards;
+}
+
+@keyframes progress {
+  0% { stroke-dasharray: 0 100; }
+}
+
+.circular-chart.orange .circle { stroke: #ff9f00; }
+.circular-chart.purple .circle { stroke: var(--primary); }
+
+.reward-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.5rem;
+}
+
+.reward-info h3 {
+  font-size: 1.1rem;
+  margin: 0 0 0.25rem 0;
+  color: var(--text-main);
+}
+
+.reward-info p {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.reward-status {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.reward-status.locked {
+  background: #f0f0f0;
+  color: #999;
+}
+
+.reward-status.unlocked {
+  background: #d1fae5;
+  color: #10b981;
+}
+
+/* Referral Reveal Code */
+.referral-code-reveal-section {
+  background: #f9f9f9;
+  padding: 2rem;
+  border-radius: 12px;
+  margin-top: 1rem;
+}
+
+.code-display {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.code-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+}
+
+.reveal-wrapper {
+  background: white;
+  border: 2px dashed #ddd;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 250px;
+}
+
+.reveal-wrapper:hover {
+  border-color: var(--primary);
+  background: #fff0f5;
+}
+
+.actual-code {
+  font-family: monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: 0.1em;
+}
+
+.masked-code {
+  color: #ccc;
+  font-size: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.click-reveal {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-top: 0.25rem;
+}
+
+.mini-hint {
+  margin-top: 1.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
 .vibes-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1204,8 +1423,18 @@ textarea {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.app-loading {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--background);
+  z-index: 9999;
 }
 
 @keyframes fadeIn {
@@ -1240,6 +1469,64 @@ textarea {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+/* Payment Step */
+.payment-summary-card {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  border: 1px solid #eee;
+}
+
+.pay-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.pay-row.total {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed #ddd;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--text-main);
+  margin-bottom: 0;
+}
+
+.dummy-payment-options {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.pay-method {
+  flex: 1;
+  padding: 1rem;
+  border: 2px solid #eee;
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  font-weight: 600;
+}
+
+.pay-method.selected {
+  border-color: var(--primary);
+  background: #fff0f5;
+  color: var(--primary);
+}
+
+.processing-state.compact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
 }
 
 .beta-tag {

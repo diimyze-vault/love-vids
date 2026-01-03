@@ -48,7 +48,10 @@ export function Pricing({ onCreateClick }: { onCreateClick: () => void }) {
     <section className="pricing-section" id="pricing">
       <div className="section-header">
          <h2 className="section-title">Transparent Pricing</h2>
-         <p className="section-subtitle">Pay only for the resolution & duration you need. Persistent storage included.</p>
+         <p className="section-subtitle">
+            Pay only for the resolution & duration you need. Persistent storage included. <br />
+            <span className="referral-hint">✨ Invite friends to earn free videos!</span>
+         </p>
       </div>
       
       <div className="currency-selector-wrapper">
