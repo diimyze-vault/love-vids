@@ -53,7 +53,7 @@ export function Hero({ onCreateClick }: { onCreateClick: () => void }) {
         </button>
       </div>
 
-      <div className="hero-visual">
+      <div className="hero-right-visual">
          <div className="card-stack-video">
            <div className="stack-controls">
              <button onClick={handlePrev} className="stack-btn">←</button>

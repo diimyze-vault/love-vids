@@ -62,7 +62,9 @@ export function DemoVideos() {
     { title: "Birthday Roast", user: "@mike_t", vibe: "Roast Mode 🔥", url: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
     { title: "Anniversary", user: "@sarah_j", vibe: "Romantic 🌹", url: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" },
     { title: "Job Promotion", user: "@alex_work", vibe: "Hype 🚀", url: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
-    { title: "Valentine's", user: "@romeo_ai", vibe: "Cinematic 🎬", url: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" }
+    { title: "Valentine's", user: "@romeo_ai", vibe: "Cinematic 🎬", url: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
+    { title: "Vacation Reel", user: "@travel_bug", vibe: "Chill 🌊", url: "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" },
+    { title: "Pet Bloopers", user: "@doggo_lover", vibe: "Meme 🐶", url: "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4" }
   ];
 
   const togglePlay = (index: number) => {

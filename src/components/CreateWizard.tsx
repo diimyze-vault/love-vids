@@ -4,7 +4,6 @@ export function CreateWizard({ onClose, isLoggedIn, onLogin }: { onClose: () => 
   // If logged in, start at Step 2 (Basics), else Step 1 (Auth)
   const [step, setStep] = useState(isLoggedIn ? 2 : 1);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [result, setResult] = useState<string | null>(null);
 
   // Form State
   const [text, setText] = useState('');
@@ -12,7 +11,6 @@ export function CreateWizard({ onClose, isLoggedIn, onLogin }: { onClose: () => 
   const [selectedVibe, setSelectedVibe] = useState('');
   
   // Auth State
-  const [isAuthenticated, setIsAuthenticated] = useState(isLoggedIn || false);
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [showOtp, setShowOtp] = useState(false);
@@ -33,7 +31,6 @@ export function CreateWizard({ onClose, isLoggedIn, onLogin }: { onClose: () => 
     // Simulate AI Generation
     setTimeout(() => {
       setIsProcessing(false);
-      setResult('success');
       setStep(6);
     }, 3000);
   };
@@ -49,7 +46,6 @@ export function CreateWizard({ onClose, isLoggedIn, onLogin }: { onClose: () => 
   };
   
   const handleVerifyFn = () => {
-      setIsAuthenticated(true);
       setStep(2);
   };
 
@@ -68,7 +64,6 @@ export function CreateWizard({ onClose, isLoggedIn, onLogin }: { onClose: () => 
                <button className="google-btn" onClick={() => { 
                    if (onLogin) onLogin();
                    else {
-                     setIsAuthenticated(true); 
                      setStep(2); 
                    }
                }}>
