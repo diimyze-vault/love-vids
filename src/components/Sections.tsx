@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export function HowItWorks() {
   const steps = [
@@ -6,49 +7,103 @@ export function HowItWorks() {
       id: "01",
       icon: "📸",
       title: "Upload & Context",
-      desc: "Drop a photo and add a few words. 'Make it funny' or 'Make it romantic'."
+      desc: "Drop a photo and write a few words. Tell us if it's for a birthday, anniversary, or just a surprise."
     },
     {
       id: "02",
       icon: "🪄",
-      title: "AI Analysis",
-      desc: "Our engine scans the image and text to craft a perfect video narrative with music."
+      title: "AI Video Magic",
+      desc: "Our AI scans your photo and context to craft a personalized video with music and cinematic effects."
     },
     {
       id: "03",
       icon: "🔓",
-      title: "Unlock Vibe",
-      desc: "Preview 3 generated options. Pay a small fee to unlock the HD video without watermarks."
+      title: "Pick Your Favorite",
+      desc: "Choose from 3 different AI-generated options. Pick the one that perfectly captures the vibe."
     },
     {
       id: "04",
-      icon: "🚀",
-      title: "Go Viral",
-      desc: "Download MP4 instantly. Ready for TikTok, Reels, or WhatsApp status."
+      icon: "💝",
+      title: "Unlock & Gift",
+      desc: "Unlock your favorite version with a single payment and download the HD video instantly."
     }
   ];
 
+  const cardSpring: any = {
+    type: "spring",
+    stiffness: 60,
+    damping: 20,
+    mass: 1.2
+  };
+
   return (
-    <section className="steps-section" id="how-it-works">
-      <div className="section-header">
-        <h2 className="section-title">From Pic to Viral in Minutes 🚀</h2>
-        <p className="section-subtitle">No editing skills required. Just vibes.</p>
+    <section className="pt-40 pb-32 px-6 max-w-7xl mx-auto overflow-visible relative" id="how-it-works">
+      <div className="absolute inset-0 -z-10 bg-radial-at-c from-primary/5 to-transparent blur-3xl opacity-50" />
+      
+      <div className="text-center mb-32 space-y-6">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          className="label-caps px-5 py-2 rounded-full bg-primary/10 border border-primary/20 inline-flex"
+        >
+          how it works
+        </motion.div>
+        <motion.h2 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+          className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight"
+        >
+          From Photo to <span className="text-gradient">Magic Gift</span> 🎁
+        </motion.h2>
+        <p className="text-xl text-muted-foreground font-medium">Four simple steps to create an unforgettable moment.</p>
       </div>
       
-      <div className="steps-flow-container">
-        <div className="steps-connector-line"></div>
-        <div className="steps-grid-flow">
-          {steps.map((step, index) => (
-            <div className="step-item-flow" key={index}>
-               <div className="step-icon-circle shadow-pop">{step.icon}</div>
-               <div className="step-content-flow">
-                 <span className="step-number-tiny">STEP {step.id}</span>
-                 <h3>{step.title}</h3>
-                 <p>{step.desc}</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {steps.map((step, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ ...cardSpring, delay: index * 0.1 }}
+            className="relative group p-10 rounded-[48px] bg-card border border-border/50 hover:border-primary/50 transition-all duration-500 shadow-xl hover:shadow-2xl flex flex-col items-center text-center overflow-hidden"
+          >
+            {/* Artistic Flair */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+            
+            <div className="relative mb-10">
+               <div className="w-20 h-20 rounded-3xl bg-primary/5 flex items-center justify-center text-4xl relative group-hover:scale-110 transition-transform duration-500">
+                 <span className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-[10px] font-black text-white shadow-lg border-2 border-card z-20">
+                   {step.id}
+                 </span>
+                 <span className="relative z-10">{step.icon}</span>
                </div>
             </div>
-          ))}
-        </div>
+
+            <div className="space-y-4">
+              <h3 className="text-xl font-black group-hover:text-primary transition-colors duration-300 tracking-tight">
+                {step.title}
+              </h3>
+              <p className="text-[15px] text-muted-foreground leading-relaxed font-medium">
+                {step.desc}
+              </p>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="mt-24 text-center">
+        <motion.div
+           initial={{ opacity: 0 }}
+           whileInView={{ opacity: 1 }}
+           viewport={{ once: true }}
+           transition={{ delay: 0.5 }}
+        >
+          <p className="text-[11px] font-black text-muted-foreground/30 uppercase tracking-[0.3em]">Ready to start the journey?</p>
+        </motion.div>
       </div>
     </section>
   );
@@ -57,14 +112,15 @@ export function HowItWorks() {
 export function DemoVideos() {
   const [playingMap, setPlayingMap] = useState<{[key:number]: boolean}>({});
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const demos = [
-    { title: "Birthday Roast", user: "@mike_t", vibe: "Roast Mode 🔥", url: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
-    { title: "Anniversary", user: "@sarah_j", vibe: "Romantic 🌹", url: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" },
-    { title: "Job Promotion", user: "@alex_work", vibe: "Hype 🚀", url: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
-    { title: "Valentine's", user: "@romeo_ai", vibe: "Cinematic 🎬", url: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
-    { title: "Vacation Reel", user: "@travel_bug", vibe: "Chill 🌊", url: "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" },
-    { title: "Pet Bloopers", user: "@doggo_lover", vibe: "Meme 🐶", url: "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4" }
+    { title: "Birthday Magic", user: "@sarah_gift", vibe: "Birthday 🎂", url: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
+    { title: "Proposal Surprise", user: "@romeo_ai", vibe: "Proposal 💍", url: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" },
+    { title: "Sweet Anniversary", user: "@love_vids", vibe: "Anniversary ❤️", url: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
+    { title: "Bestie Tribute", user: "@gift_master", vibe: "Friends 👯‍♂️", url: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
+    { title: "Graduation Vibe", user: "@proud_parent", vibe: "Graduation 🎓", url: "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" },
+    { title: "New Puppy Surprise", user: "@doggo_lover", vibe: "New Pet 🐾", url: "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4" }
   ];
 
   const togglePlay = (index: number) => {
@@ -80,38 +136,115 @@ export function DemoVideos() {
     }
   };
 
+
   return (
-    <section className="demos-section" id="demos">
-      <div className="section-header">
-        <h2 className="section-title">Made with VibeVids</h2>
-        <p className="section-subtitle">See what others are creating.</p>
+    <section className="py-40 max-w-[100vw] relative bg-background overflow-visible" id="demos">
+      {/* Background Flair: Atmospheric localized glows */}
+      <div className="absolute top-0 left-1/3 w-[500px] h-[500px] bg-primary/10 blur-[120px] rounded-full -translate-y-1/2 opacity-40 pointer-events-none" />
+      <div className="absolute bottom-0 right-1/3 w-[500px] h-[500px] bg-primary/5 blur-[120px] rounded-full translate-y-1/2 opacity-30 pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 blur-[150px] rounded-full opacity-20 pointer-events-none" />
+      <div className="max-w-7xl mx-auto px-6 mb-28 text-center space-y-7">
+        <motion.div
+           initial={{ opacity: 0, scale: 0.9 }}
+           whileInView={{ opacity: 1, scale: 1 }}
+           viewport={{ once: true }}
+           className="label-caps px-4 py-2 rounded-full bg-primary/10 border border-primary/20 inline-flex"
+        >
+          the gallery
+        </motion.div>
+        <motion.h2 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4 tracking-tight"
+        >
+          Made with <span className="text-gradient">VibeVids</span> 🎬
+        </motion.h2>
+        <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed font-medium">
+          Emotional moments created by people around the world. <br className="hidden md:block"/>
+          <span className="text-primary">Real results from our global community.</span>
+        </p>
       </div>
 
-      <div className="demos-container">
-        <div className="demos-grid">
+      <div className="relative group overflow-visible">
+        <div 
+          ref={scrollContainerRef}
+          className="flex overflow-x-auto gap-8 px-[max(1.5rem,calc((100vw-1280px)/2+1.5rem))] py-12 no-scrollbar snap-x snap-mandatory scroll-smooth"
+        >
           {demos.map((demo, idx) => (
-            <div className="demo-card-video" key={idx} onClick={() => togglePlay(idx)}>
+            <motion.div 
+              key={idx} 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "100px" }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: idx * 0.05 }}
+              whileHover={{ y: -8, transition: { duration: 0.3 } }}
+              className="relative flex-none w-[300px] md:w-[340px] aspect-[9/16] rounded-[48px] overflow-hidden cursor-pointer group shadow-xl snap-center border border-white/10 will-change-transform" 
+              onClick={() => togglePlay(idx)}
+            >
               <video 
                 ref={(el) => { videoRefs.current[idx] = el; }}
                 src={demo.url}
-                className="demo-video-element"
+                className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-105"
                 playsInline
                 loop
-                muted={false} 
+                muted
               />
               
-              {!playingMap[idx] && (
-                 <div className="demo-overlay-glass">
-                   <div className="play-button-glass">▶</div>
-                   <div className="demo-info">
-                     <span className="demo-user">{demo.user}</span>
-                     <span className="demo-vibe">{demo.vibe}</span>
-                   </div>
-                 </div>
-              )}
-            </div>
+              <AnimatePresence>
+                {!playingMap[idx] && (
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 bg-black/30 flex items-center justify-center"
+                  >
+                    <motion.div 
+                      whileHover={{ scale: 1.1 }}
+                      className="w-16 h-16 glass rounded-full flex items-center justify-center border border-white/20 shadow-2xl"
+                    >
+                      <span className="text-white text-2xl ml-1">▶</span>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              
+              <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none p-8 flex flex-col justify-end">
+                <div className="space-y-4">
+                  <motion.span 
+                    initial={{ opacity: 0.8 }}
+                    whileHover={{ scale: 1.05, opacity: 1 }}
+                    className="inline-block px-4 py-1.5 bg-primary text-white text-[10px] font-black rounded-full uppercase tracking-widest border border-white/10 shadow-lg"
+                  >
+                    {demo.vibe}
+                  </motion.span>
+                  <div className="flex flex-col text-white">
+                    <span className="font-black text-2xl leading-none mb-1.5">{demo.title}</span>
+                    <span className="text-xs font-bold text-white/60">{demo.user}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-tr from-white/10 via-white/5 to-transparent transition-opacity duration-700 pointer-events-none" />
+            </motion.div>
           ))}
+          
+          <div className="flex-none w-[max(1.5rem,calc((100vw-1280px)/2+1.5rem))]" />
         </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6 mt-16 flex items-center gap-6">
+          <div className="flex gap-2.5">
+             <motion.div 
+               animate={{ width: [32, 48, 32] }}
+               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+               className="h-1.5 bg-primary rounded-full shadow-[0_0_15px_rgba(225,29,72,0.4)]" 
+             />
+             <div className="h-1.5 w-4 bg-muted/20 rounded-full" />
+             <div className="h-1.5 w-4 bg-muted/20 rounded-full" />
+          </div>
+          <span className="text-[11px] font-black text-muted-foreground/40 uppercase tracking-[0.2em]">Scroll to see magic in action</span>
       </div>
     </section>
   );

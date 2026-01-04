@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import './App.css'
+import { AnimatePresence } from 'framer-motion'
 import { Navbar, Footer } from './components/Navigation'
 import { Hero } from './components/Hero'
 import { HowItWorks, DemoVideos } from './components/Sections'
@@ -10,6 +10,8 @@ import { supabase } from './lib/supabase'
 import type { User } from '@supabase/supabase-js'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
+import { Button } from './components/ui/button';
+import { FullPageSpinner } from './components/ui/spinner';
 
 function App() {
   const [showWizard, setShowWizard] = useState(false);
@@ -18,6 +20,23 @@ function App() {
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isPasswordReset, setIsPasswordReset] = useState(false);
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('theme') === 'dark';
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (isDark) {
+      root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDark]);
 
   useEffect(() => {
     console.log('[App] Mount. URL:', window.location.href);
@@ -152,7 +171,7 @@ function App() {
   };
 
   if (loading) {
-     return <div className="app-loading"><div className="spinner"></div></div>;
+     return <FullPageSpinner />;
   }
 
   return (
@@ -160,27 +179,36 @@ function App() {
       {(user && !isPasswordReset) ? (
         // CHECK FOR SOFT DELETED STATUS
         (user.user_metadata?.status === 'deleted') ? (
-            <div className="wizard-overlay" style={{background: '#000'}}>
-                 <div className="wizard-modal" style={{textAlign: 'center', padding: '3rem'}}>
-                     <h2 style={{fontSize: '2rem', marginBottom: '1rem'}}>Account Deactivated ⚠️</h2>
-                     <p style={{color: '#666', marginBottom: '2rem'}}>
-                         This account was scheduled for deletion on {new Date(user.user_metadata.deletion_scheduled_at).toLocaleDateString()}.<br/>
-                         You have 30 days to restore it.
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+                 <div className="bg-card glass border border-white/10 p-8 rounded-2xl max-w-md w-full text-center shadow-2xl animate-in zoom-in-95 duration-300">
+                     <span className="text-4xl mb-4 block">⚠️</span>
+                     <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-orange-500 mb-2">Account Deactivated</h2>
+                     <p className="text-muted-foreground mb-6">
+                         This account was scheduled for deletion on <span className="font-mono text-foreground font-medium">{new Date(user.user_metadata.deletion_scheduled_at).toLocaleDateString()}</span>.<br/>
+                         You have 30 days to restore it before permanent data loss.
                      </p>
                      
-                     <div style={{display: 'flex', gap: '1rem', justifyContent: 'center'}}>
-                         <button className="wizard-btn" onClick={async () => {
-                             // Restore Logic
-                             await supabase.auth.updateUser({
-                                 data: { status: null, deletion_scheduled_at: null }
-                             });
-                             window.location.reload();
-                         }}>
+                     <div className="flex gap-3 justify-center">
+                         <Button 
+                             variant="default"
+                             className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-0"
+                             onClick={async () => {
+                                 // Restore Logic
+                                 await supabase.auth.updateUser({
+                                     data: { status: null, deletion_scheduled_at: null }
+                                 });
+                                 window.location.reload();
+                             }}
+                         >
                              Restore Account
-                         </button>
-                         <button className="wizard-btn secondary" onClick={() => supabase.auth.signOut()}>
+                         </Button>
+                         <Button 
+                             variant="outline" 
+                             className="w-full border-white/10 hover:bg-white/5"
+                             onClick={() => supabase.auth.signOut()}
+                         >
                              Sign Out
-                         </button>
+                         </Button>
                      </div>
                  </div>
             </div>
@@ -198,12 +226,14 @@ function App() {
             <Navbar 
               onCreateClick={() => setShowWizard(true)} 
               onLogin={() => setShowWizard(true)} 
+              isDark={isDark}
+              toggleTheme={() => setIsDark(!isDark)}
             />
             
             <main>
               <Hero onCreateClick={() => setShowWizard(true)} />
-              <DemoVideos />
               <HowItWorks />
+              <DemoVideos />
               <Testimonials />
               <Pricing onCreateClick={() => setShowWizard(true)} />
             </main>
@@ -212,27 +242,29 @@ function App() {
         </>
       )}
 
-      {showWizard && (
-        <CreateWizard 
-          onClose={() => {
-              setShowWizard(false);
-              // If cancelling a password reset, just close the wizard. 
-              // The user is already logged in (via link), so they will see the Dashboard.
-              if (isPasswordReset) {
-                  setIsPasswordReset(false);
-                  localStorage.removeItem('is_resetting_password'); // Clean up flag
-              }
-          }} 
-          isLoggedIn={!!user}
-          onLogin={handleGoogleLogin}
-          isAuthLoading={isAuthLoading}
-          resetMode={isPasswordReset}
-          onPasswordUpdated={() => { 
-              setIsPasswordReset(false);
-              localStorage.removeItem('is_resetting_password'); // Consume flag on success
-          }}
-        />
-      )}
+      <AnimatePresence mode="wait">
+        {showWizard && (
+          <CreateWizard 
+            onClose={() => {
+                setShowWizard(false);
+                // If cancelling a password reset, just close the wizard. 
+                // The user is already logged in (via link), so they will see the Dashboard.
+                if (isPasswordReset) {
+                    setIsPasswordReset(false);
+                    localStorage.removeItem('is_resetting_password'); // Clean up flag
+                }
+            }} 
+            isLoggedIn={!!user}
+            onLogin={handleGoogleLogin}
+            isAuthLoading={isAuthLoading}
+            resetMode={isPasswordReset}
+            onPasswordUpdated={() => { 
+                setIsPasswordReset(false);
+                localStorage.removeItem('is_resetting_password'); // Consume flag on success
+            }}
+          />
+        )}
+      </AnimatePresence>
       <Analytics />
       <SpeedInsights />
     </>

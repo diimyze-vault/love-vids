@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import type { User } from '@supabase/supabase-js';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
+import { Spinner } from './ui/spinner';
 
 export function Dashboard({ onCreateClick, onLogout, user, isLoggingOut }: { onCreateClick: () => void, onLogout: () => void, user: User, isLoggingOut?: boolean }) {
-  // Mock data for user's videos
   const [videos] = useState([
     { id: 1, title: "Birthday Roast for Mike", date: "2 mins ago", status: "Processing", thumbnail: "" },
     { id: 2, title: "Anniversary Surprise", date: "2 days ago", status: "Ready", thumbnail: "https://picsum.photos/seed/dash1/300/169", url: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" },
@@ -12,8 +15,7 @@ export function Dashboard({ onCreateClick, onLogout, user, isLoggingOut }: { onC
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
   const [showReferral, setShowReferral] = useState(false);
   const [isLinking, setIsLinking] = useState(false);
-
-  // Check linked identities
+  
   const googleIdentity = user.identities?.find(id => id.provider === 'google');
   
   const handleLinkGoogle = async () => {
@@ -23,7 +25,6 @@ export function Dashboard({ onCreateClick, onLogout, user, isLoggingOut }: { onC
           alert('Error linking Google: ' + error.message);
           setIsLinking(false);
       }
-      // Redirects away, so no need to set false usually
   };
 
   const handleUnlinkGoogle = async () => {
@@ -33,11 +34,10 @@ export function Dashboard({ onCreateClick, onLogout, user, isLoggingOut }: { onC
           const { error } = await supabase.auth.unlinkIdentity(googleIdentity);
           setIsLinking(false);
           if (error) alert(error.message);
-          else window.location.reload(); // Refresh to update user object
+          else window.location.reload();
       }
   };
 
-  // Profile Management State
   const [newPassword, setNewPassword] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
@@ -54,18 +54,12 @@ export function Dashboard({ onCreateClick, onLogout, user, isLoggingOut }: { onC
           setPasswordMessage({ type: 'error', text: error.message });
       } else {
           setPasswordMessage({ type: 'success', text: 'Password updated successfully!' });
-          setNewPassword(''); // Clear input
+          setNewPassword('');
       }
   };
 
   const handleDeleteAccount = async () => {
-      // Soft Delete Logic:
-      // 1. We flag the account in metadata as "scheduled for deletion".
-      // 2. We sign the user out.
-      // (Actual hard deletion would require a backend cron job to check this flag after 30 days)
-      
       if (confirm('Are you sure? Your account will be deactivated immediately and permanently deleted in 30 days.')) {
-           // Update metadata to flag for deletion
            const deletionDate = new Date();
            deletionDate.setDate(deletionDate.getDate() + 30);
            
@@ -79,7 +73,6 @@ export function Dashboard({ onCreateClick, onLogout, user, isLoggingOut }: { onC
            if (error) {
                alert('Error scheduling deletion: ' + error.message);
            } else {
-               // Initial Soft Delete successful - Log them out to simulate deactivation
                await supabase.auth.signOut();
                alert('Your account has been deactivated. It will be permanently removed in 30 days.');
                window.location.reload();
@@ -88,320 +81,254 @@ export function Dashboard({ onCreateClick, onLogout, user, isLoggingOut }: { onC
   };
 
   return (
-    <div className="dashboard-container">
-      {/* ... header ... */}
-      <header className="dashboard-header">
-        <div className="dash-brand" onClick={() => window.location.reload()} style={{cursor: 'pointer'}}>
+    <div className="min-h-screen bg-background text-foreground animate-in fade-in duration-500">
+      {/* HEADER */}
+      <header className="border-b h-16 flex items-center justify-between px-6 lg:px-12 bg-card/50 backdrop-blur-md sticky top-0 z-40">
+        <div className="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-400 cursor-pointer hover:scale-105 transition-transform" onClick={() => window.location.reload()}>
           VibeVids.ai
         </div>
-        <div className="dash-user-controls">
-           <button className="dash-referral-btn" onClick={() => setShowReferral(true)}>🎁 Invite Friends</button>
-           <span className="user-email">{user.email || 'user@example.com'}</span>
-           <button className="dash-logout" onClick={onLogout} disabled={isLoggingOut} style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
-             {isLoggingOut && <div className="spinner-small" style={{width: '16px', height: '16px', borderTopColor: '#666', borderRightColor: '#ddd', borderWidth: '2px', margin: 0}}></div>}
-             {isLoggingOut ? '...' : 'Logout'}
-           </button>
+        <div className="flex items-center gap-4">
+           <Button variant="outline" size="sm" onClick={() => setShowReferral(true)} className="hidden sm:flex">
+             🎁 Invite Friends
+           </Button>
+           <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-muted text-xs font-medium">
+              <span className="w-2 h-2 rounded-full bg-green-500 block"></span>
+              {user.email || 'user@example.com'}
+           </div>
+            <Button variant="ghost" size="sm" onClick={onLogout} disabled={isLoggingOut} className="w-20">
+              {isLoggingOut ? <Spinner className="h-4 w-4" /> : 'Logout'}
+            </Button>
         </div>
       </header>
 
-      <main className="dash-content">
-        {/* ... welcome ... */}
-        <div className="dash-welcome">
-          <h1>Welcome back, Creator! 👋</h1>
-          <button className="create-new-btn" onClick={onCreateClick}>
+      <main className="max-w-7xl mx-auto px-6 py-8 space-y-12">
+        {/* WELCOME */}
+        <div className="flex flex-col md:flex-row justify-between items-end gap-6 border-b pb-8">
+          <div className="space-y-1">
+            <h1 className="text-3xl md:text-4xl font-black tracking-tighter">Welcome back! 👋</h1>
+            <p className="text-sm text-muted-foreground">Ready to create another viral masterpiece?</p>
+          </div>
+          <Button size="lg" variant="premium" onClick={onCreateClick} className="w-full md:w-auto text-base shadow-xl shadow-primary/20">
             + Create New Video
-          </button>
+          </Button>
         </div>
 
-        {/* ... sections ... */}
         {/* REWARDS SECTION */}
-        <section className="rewards-section">
-           <h2>Rewards 🏆</h2>
-           <div className="rewards-grid">
-              {/* Reward Card 1 */}
-              <div className="reward-card">
-                 <div className="circular-progress">
-                    <svg viewBox="0 0 36 36" className="circular-chart orange">
-                      <path className="circle-bg"
-                        d="M18 2.0845
-                          a 15.9155 15.9155 0 0 1 0 31.831
-                          a 15.9155 15.9155 0 0 1 0 -31.831"
-                      />
-                      <path className="circle"
-                        strokeDasharray="60, 100" // 3 out of 5 = 60%
-                        d="M18 2.0845
-                          a 15.9155 15.9155 0 0 1 0 31.831
-                          a 15.9155 15.9155 0 0 1 0 -31.831"
-                      />
-                    </svg>
-                    <div className="reward-icon">🎟️</div>
-                 </div>
-                 <div className="reward-info">
-                   <h3>Free HD Video</h3>
-                   <p><strong>3</strong> / 5 Referrals</p>
-                   <span className="reward-status locked">2 more to unlock</span>
-                 </div>
-              </div>
+        <section className="space-y-4">
+           <div className="flex items-center justify-between">
+              <h2 className="text-xl font-black tracking-tighterer">Rewards 🏆</h2>
+           </div>
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Card className="hover:shadow-lg transition-shadow duration-300">
+                 <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex justify-between">
+                       Free HD Video 
+                       <span className="text-xl">🎟️</span>
+                    </CardTitle>
+                    <CardDescription className="text-xs">Refer 5 friends to unlock</CardDescription>
+                 </CardHeader>
+                 <CardContent>
+                    <div className="mt-2 space-y-2">
+                         <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                             <div className="h-full bg-orange-400 w-[60%] transition-all"></div>
+                         </div>
+                         <div className="flex justify-between text-sm font-medium">
+                             <span>3 / 5</span>
+                             <span className="text-orange-500">2 more to go!</span>
+                         </div>
+                    </div>
+                 </CardContent>
+              </Card>
 
-              {/* Reward Card 2 */}
-              <div className="reward-card">
-                 <div className="circular-progress">
-                    <svg viewBox="0 0 36 36" className="circular-chart purple">
-                      <path className="circle-bg"
-                        d="M18 2.0845
-                          a 15.9155 15.9155 0 0 1 0 31.831
-                          a 15.9155 15.9155 0 0 1 0 -31.831"
-                      />
-                      <path className="circle"
-                        strokeDasharray="30, 100" // 3 out of 10 = 30%
-                        d="M18 2.0845
-                          a 15.9155 15.9155 0 0 1 0 31.831
-                          a 15.9155 15.9155 0 0 1 0 -31.831"
-                      />
-                    </svg>
-                    <div className="reward-icon">🎬</div>
-                 </div>
-                 <div className="reward-info">
-                   <h3>Free 4K Epic</h3>
-                   <p><strong>3</strong> / 10 Referrals</p>
-                   <span className="reward-status locked">7 more to unlock</span>
-                 </div>
-              </div>
+              <Card className="hover:shadow-lg transition-shadow duration-300">
+                 <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex justify-between">
+                       Free 4K Epic
+                       <span className="text-2xl">🎬</span>
+                    </CardTitle>
+                    <CardDescription>Refer 10 friends to unlock</CardDescription>
+                 </CardHeader>
+                 <CardContent>
+                    <div className="mt-2 space-y-2">
+                         <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                             <div className="h-full bg-purple-500 w-[30%] transition-all"></div>
+                         </div>
+                         <div className="flex justify-between text-sm font-medium">
+                             <span>3 / 10</span>
+                             <span className="text-purple-500">7 more to go!</span>
+                         </div>
+                    </div>
+                 </CardContent>
+              </Card>
            </div>
         </section>
 
-        <section className="dash-videos-section">
-          <h2>Your Videos (Persistent Gallery)</h2>
-          <div className="dash-video-grid">
+        {/* VIDEOS SECTION */}
+        <section className="space-y-4">
+          <h2 className="text-xl font-black tracking-tighterer">Your Gallery 🎥</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {videos.map(video => (
-              <div key={video.id} className="dash-video-card" onClick={() => video.url && setPlayingVideo(video.url)}>
-                 <div className={`dash-video-thumb ${!video.thumbnail ? 'processing' : ''}`}>
-                    {video.thumbnail ? (
-                      <>
-                         <img src={video.thumbnail} alt={video.title} />
-                         <div className="thumb-play-icon">▶</div>
-                      </>
-                    ) : (
-                      <div className="processing-placeholder">
-                        <div className="spinner-small"></div>
-                        <span>Rendering...</span>
-                      </div>
-                    )}
-                 </div>
-                 <div className="dash-video-info">
-                   <h3>{video.title}</h3>
-                   <div className="dash-meta">
-                     <span>{video.date}</span>
-                     <span className={`status-badge ${video.status.toLowerCase()}`}>{video.status}</span>
-                   </div>
+              <div key={video.id} className="group relative aspect-video bg-muted rounded-xl overflow-hidden cursor-pointer hover:ring-1 ring-primary transition-all shadow-md" onClick={() => video.url && setPlayingVideo(video.url)}>
+                 {!video.thumbnail ? (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-muted/30">
+                        <Spinner className="w-6 h-6 opacity-40" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Rendering</span>
+                    </div>
+                 ) : (
+                    <>
+                       <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                       <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
+                          <div className="w-12 h-12 glass rounded-full flex items-center justify-center border border-white/40">
+                              <span className="ml-1 text-white text-xl">▶</span>
+                          </div>
+                       </div>
+                    </>
+                 )}
+                 <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent text-white">
+                      <h3 className="font-black label-caps text-sm truncate">{video.title}</h3>
+                      <p className="text-xs text-white/70">{video.date} • {video.status}</p>
                  </div>
               </div>
             ))}
             
-            {/* Empty state slots (max 5) */}
+            {/* Empty Slots */}
             {[...Array(3)].map((_, i) => (
-               <div key={`empty-${i}`} className="dash-video-card empty" onClick={onCreateClick}>
-                  <div className="empty-slot-icon">+</div>
-                  <span>Empty Slot</span>
+               <div key={`empty-${i}`} className="aspect-video rounded-xl border-2 border-dashed border-muted-foreground/20 flex flex-col items-center justify-center text-muted-foreground hover:bg-muted/50 hover:border-primary/50 transition-colors cursor-pointer group" onClick={onCreateClick}>
+                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center mb-2 group-hover:bg-primary/20 group-hover:text-primary transition-colors">
+                      <span className="text-xl">+</span>
+                  </div>
+                  <span className="text-sm font-medium">Create New</span>
                </div>
             ))}
           </div>
         </section>
 
-        {/* LINKED ACCOUNTS SECTION */}
-        <section className="accounts-section" style={{marginBottom: '4rem'}}>
-           <h2>Account & Security 🔐</h2>
-           <div className="account-card" style={{
-               background: 'white', 
-               padding: '2rem', 
-               borderRadius: '20px', 
-               boxShadow: 'var(--shadow-sm)',
-               border: '1px solid rgba(0,0,0,0.05)',
-               display: 'flex',
-               flexDirection: 'column',
-               gap: '1.5rem'
-           }}>
-              <div className="account-row" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '1rem', borderBottom: '1px solid #eee'}}>
-                  <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
-                      <span style={{fontSize: '1.5rem'}}>📧</span>
-                      <div>
-                          <h4 style={{margin: 0}}>Email Address</h4>
-                          <p style={{margin: 0, color: '#666', fontSize: '0.9rem'}}>{user.email}</p>
-                      </div>
-                  </div>
-                  <span className="status-badge" style={{background: '#e0f2f1', color: '#00695c', padding: '0.25rem 0.75rem', borderRadius: '50px', fontSize: '0.85rem', fontWeight: 600}}>Primary</span>
-              </div>
+        {/* ACCOUNT SECTION */}
+        <section className="space-y-6 max-w-3xl">
+           <h2 className="text-2xl font-black tracking-tighterer">Account & Security 🔐</h2>
+           <Card>
+              <CardContent className="p-0 divide-y">
+                 {/* Email Row */}
+                 <div className="p-6 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                     <div className="flex items-center gap-4">
+                         <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-xl">📧</div>
+                         <div>
+                             <h4 className="font-black label-caps text-sm">Email Address</h4>
+                             <p className="text-sm text-muted-foreground">{user.email}</p>
+                         </div>
+                     </div>
+                     <span className="text-xs font-black label-caps bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full w-fit">Primary</span>
+                 </div>
 
-              <div className="account-row" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                  <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
-                      <img src="https://lh3.googleusercontent.com/COxitqgJr1sJnIDe8-jiKhxDx1FrYbtRHKJ9z_hELisAlapwE9LUPh6fcXIfb5vwpbMl4xl9H9TRFPc5NOO8Sb3VSgIBrfRYvW6cUA" alt="G" style={{width: 24, height: 24}} />
-                      <div>
-                          <h4 style={{margin: 0}}>Google Account</h4>
-                          <p style={{margin: 0, color: '#666', fontSize: '0.9rem'}}>{googleIdentity ? 'Connected' : 'Not connected'}</p>
-                      </div>
-                  </div>
-                  {googleIdentity ? (
-                      <button onClick={handleUnlinkGoogle} disabled={isLinking} style={{
-                          background: 'transparent', 
-                          border: '1px solid #ddd', 
-                          color: '#666', 
-                          padding: '0.5rem 1rem', 
-                          borderRadius: '8px', 
-                          fontSize: '0.9rem',
-                          fontWeight: 600
-                      }}>
-                          {isLinking ? '...' : 'Disconnect'}
-                      </button>
-                  ) : (
-                      <button onClick={handleLinkGoogle} disabled={isLinking} style={{
-                          background: '#4285F4', 
-                          color: 'white', 
-                          padding: '0.5rem 1rem', 
-                          borderRadius: '8px', 
-                          fontSize: '0.9rem', 
-                          fontWeight: 600,
-                          border: 'none',
-                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                      }}>
-                          {isLinking ? 'Connecting...' : 'Connect Google'}
-                      </button>
-                  )}
-              </div>
+                 {/* Google Row */}
+                 <div className="p-6 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                     <div className="flex items-center gap-4">
+                         <div className="w-10 h-10 rounded-full bg-white border flex items-center justify-center text-xl p-2 shadow-sm">
+                            <img src="https://lh3.googleusercontent.com/COxitqgJr1sJnIDe8-jiKhxDx1FrYbtRHKJ9z_hELisAlapwE9LUPh6fcXIfb5vwpbMl4xl9H9TRFPc5NOO8Sb3VSgIBrfRYvW6cUA" alt="G" />
+                         </div>
+                         <div>
+                             <h4 className="font-black label-caps text-sm">Google Account</h4>
+                             <p className="text-sm text-muted-foreground">{googleIdentity ? 'Connected' : 'Not connected'}</p>
+                         </div>
+                     </div>
+                     {googleIdentity ? (
+                         <Button variant="outline" size="sm" onClick={handleUnlinkGoogle} disabled={isLinking}>
+                            {isLinking ? <Spinner className="w-3 h-3" /> : 'Disconnect'}
+                         </Button>
+                     ) : (
+                         <Button variant="outline" size="sm" className="bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100" onClick={handleLinkGoogle} disabled={isLinking}>
+                            {isLinking ? <Spinner className="w-3 h-3" /> : 'Connect Google'}
+                         </Button>
+                     )}
+                 </div>
 
-              {/* CHANGE PASSWORD */}
-              <div className="account-row" style={{display: 'flex', flexDirection: 'column', gap: '1rem', borderTop: '1px solid #eee', paddingTop: '1rem'}}>
-                   <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
-                      <span style={{fontSize: '1.5rem'}}>🔐</span>
-                      <div>
-                          <h4 style={{margin: 0}}>Change Password</h4>
-                          <p style={{margin: 0, color: '#666', fontSize: '0.9rem'}}>Update your login password securely.</p>
-                      </div>
-                   </div>
-                   <div style={{display: 'flex', gap: '0.5rem', width: '100%', alignItems: 'center'}}>
-                       <input 
-                         type="password" 
-                         placeholder="New Secure Password" 
-                         value={newPassword}
-                         onChange={(e) => setNewPassword(e.target.value)}
-                         style={{
-                             flex: 1, 
-                             padding: '10px 14px', 
-                             borderRadius: '8px', 
-                             border: '1px solid #ddd', 
-                             fontSize: '0.95rem'
-                         }}
-                       />
-                       <button onClick={handleChangePassword} disabled={!newPassword || isChangingPassword} style={{
-                           background: '#111', 
-                           color: 'white', 
-                           border: 'none', 
-                           padding: '10px 16px', 
-                           borderRadius: '8px', 
-                           fontWeight: 600, 
-                           cursor: 'pointer',
-                           opacity: (!newPassword || isChangingPassword) ? 0.6 : 1
-                       }}>
-                           {isChangingPassword ? 'updating...' : 'Update'}
-                       </button>
-                   </div>
-                   {passwordMessage && (
-                       <div style={{
-                           fontSize: '0.85rem', 
-                           color: passwordMessage.type === 'error' ? '#d32f2f' : '#2e7d32', 
-                           padding: '0.5rem', 
-                           borderRadius: '6px', 
-                           background: passwordMessage.type === 'error' ? '#ffebee' : '#e8f5e9'
-                       }}>
-                           {passwordMessage.text}
-                       </div>
-                   )}
-              </div>
+                 {/* Password Row */}
+                 <div className="p-6 space-y-4">
+                     <div className="flex items-center gap-4">
+                         <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-xl">🔐</div>
+                         <div>
+                             <h4 className="font-black label-caps text-sm">Change Password</h4>
+                             <p className="text-sm text-muted-foreground">Update your login password securely.</p>
+                         </div>
+                     </div>
+                     <div className="flex gap-2 max-w-md ml-auto sm:ml-14">
+                         <Input 
+                            type="password" 
+                            placeholder="New Secure Password" 
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                         />
+                         <Button onClick={handleChangePassword} disabled={!newPassword || isChangingPassword}>
+                             {isChangingPassword ? <Spinner className="mr-2" /> : 'Update'}
+                         </Button>
+                     </div>
+                     {passwordMessage && (
+                         <div className={ `text-xs px-3 py-2 rounded-md ml-auto sm:ml-14 max-w-md ${passwordMessage.type === 'error' ? 'bg-destructive/10 text-destructive' : 'bg-green-100 text-green-700'}` }>
+                             {passwordMessage.text}
+                         </div>
+                     )}
+                 </div>
 
-               {/* DELETE ACCOUNT */}
-              <div className="account-row" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #eee', paddingTop: '1rem'}}>
-                  <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
-                      <span style={{fontSize: '1.5rem'}}>⚠️</span>
-                      <div>
-                          <h4 style={{margin: 0, color: '#d32f2f'}}>Delete Account</h4>
-                          <p style={{margin: 0, color: '#666', fontSize: '0.9rem'}}>Permanently delete your data and videos.</p>
-                      </div>
-                  </div>
-                  <button onClick={handleDeleteAccount} style={{
-                      background: 'white', 
-                      color: '#d32f2f', 
-                      border: '1px solid #ffcdd2', 
-                      padding: '0.5rem 1rem', 
-                      borderRadius: '8px', 
-                      fontSize: '0.9rem', 
-                      fontWeight: 600,
-                      cursor: 'pointer'
-                  }}>
-                      Delete
-                  </button>
-              </div>
-           </div>
+                 {/* Delete Row */}
+                 <div className="p-6 flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-red-50/50">
+                     <div className="flex items-center gap-4">
+                         <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-xl">⚠️</div>
+                         <div>
+                             <h4 className="font-black label-caps text-sm text-destructive">Delete Account</h4>
+                             <p className="text-sm text-muted-foreground">Permanently delete your data.</p>
+                         </div>
+                     </div>
+                     <Button variant="destructive" size="sm" onClick={handleDeleteAccount}>
+                         Delete Account
+                     </Button>
+                 </div>
+              </CardContent>
+           </Card>
         </section>
-
-        {/* Video Player Modal */}
-        {playingVideo && (
-            <div className="video-modal-overlay" onClick={() => setPlayingVideo(null)}>
-                <div className="video-modal-content" onClick={e => e.stopPropagation()}>
-                    <button className="close-player" onClick={() => setPlayingVideo(null)}>×</button>
-                    <video src={playingVideo} controls autoPlay className="modal-video-player" />
-                    <div className="video-actions-bar">
-                        <button className="video-action-btn">⬇ Download</button>
-                        <button className="video-action-btn">🔗 Share Link</button>
-                    </div>
-                </div>
-            </div>
-        )}
-
-        {/* Referral Modal */}
-        {showReferral && (
-            <div className="video-modal-overlay" onClick={() => setShowReferral(false)}>
-                <div className="referral-modal-content" onClick={e => e.stopPropagation()}>
-                    <button className="close-player" onClick={() => setShowReferral(false)}>×</button>
-                    <h2>Invite Friends 🎁</h2>
-                    <p>Share your code and get rewards!</p>
-                    
-                    <div className="referral-code-reveal-section">
-                        <div className="code-display">
-                           <span className="code-label">YOUR CODE:</span>
-                           <RevealCode code="VIBE-MIKE-2024" />
-                        </div>
-                        <p className="mini-hint">Share this code with friends to enter during signup.</p>
-                    </div>
-
-                    <div className="referral-link-section" style={{marginTop: '2rem'}}>
-                        <p style={{marginBottom: '0.5rem', fontWeight: 600, color: '#555', fontSize: '0.9rem'}}>Or share via link:</p>
-                        <div className="referral-link-box">
-                            <input readOnly value="vibevids.ai/ref/user123" />
-                            <button onClick={(e) => {
-                                const btn = e.target as HTMLButtonElement;
-                                const originalText = btn.innerText;
-                                btn.innerText = 'Copied!';
-                                setTimeout(() => btn.innerText = originalText, 2000);
-                            }}>Copy</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        )}
       </main>
+
+      {/* Video Modal */}
+      {playingVideo && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md animate-in fade-in duration-200" onClick={() => setPlayingVideo(null)}>
+                <div className="relative w-full max-w-4xl aspect-video bg-black rounded-lg shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+                    <button className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full glass hover:bg-white/20 text-white flex items-center justify-center transition-colors" onClick={() => setPlayingVideo(null)}>×</button>
+                    <video src={playingVideo} controls autoPlay className="w-full h-full" />
+                </div>
+            </div>
+      )}
+
+      {/* Referral Modal */}
+      {showReferral && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in zoom-in-95 duration-200" onClick={() => setShowReferral(false)}>
+                <Card className="w-full max-w-md m-4 shadow-2xl" onClick={e => e.stopPropagation()}>
+                    <CardHeader className="relative border-b pb-4">
+                        <CardTitle className="text-center text-xl">Invite Friends 🎁</CardTitle>
+                        <CardDescription className="text-center">Share your code and get rewards!</CardDescription>
+                        <button className="absolute right-4 top-4 text-muted-foreground hover:text-foreground" onClick={() => setShowReferral(false)}>×</button>
+                    </CardHeader>
+                    <CardContent className="pt-6 space-y-6">
+                         <div className="text-center space-y-2">
+                            <span className="text-xs font-black text-muted-foreground uppercase tracking-widest">Your Code</span>
+                            <div className="bg-muted p-4 rounded-lg border-2 border-dashed border-primary/20 cursor-pointer hover:border-primary/50 transition-colors">
+                                <span className="text-2xl font-mono font-black tracking-widest text-primary">VIBE-MIKE-2024</span>
+                            </div>
+                         </div>
+                         <div className="space-y-2">
+                             <p className="text-sm font-medium text-center">Or share via link:</p>
+                             <div className="flex gap-2">
+                                 <Input readOnly value="vibevids.ai/ref/user123" className="bg-muted/50" />
+                                 <Button variant="outline" onClick={(e) => {
+                                     const btn = e.target as HTMLButtonElement;
+                                     const originalText = btn.innerText;
+                                     btn.innerText = 'Copied!';
+                                     setTimeout(() => btn.innerText = originalText, 2000);
+                                 }}>Copy</Button>
+                             </div>
+                         </div>
+                    </CardContent>
+                </Card>
+            </div>
+      )}
     </div>
   );
-}
-
-function RevealCode({ code }: { code: string }) {
-   const [revealed, setRevealed] = useState(false);
-   
-   return (
-      <div className="reveal-wrapper" onClick={() => setRevealed(true)}>
-          {revealed ? (
-             <span className="actual-code">{code}</span>
-          ) : (
-             <span className="masked-code">••••••••••••• <span className="click-reveal">(Tap to reveal)</span></span>
-          )}
-      </div>
-   );
 }

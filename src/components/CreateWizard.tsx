@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabase';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Spinner } from './ui/spinner';
+import {cn} from '../lib/utils';
 
 export function CreateWizard({ onClose, isLoggedIn, onLogin, isAuthLoading, resetMode, onPasswordUpdated }: { onClose: () => void, isLoggedIn?: boolean, onLogin?: () => void, isAuthLoading?: boolean, resetMode?: boolean, onPasswordUpdated?: () => void }) {
-  // Step 99 is "Reset Password" mode
   const [step, setStep] = useState(resetMode ? 99 : (isLoggedIn ? 2 : 1));
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -11,16 +15,12 @@ export function CreateWizard({ onClose, isLoggedIn, onLogin, isAuthLoading, rese
   const [file, setFile] = useState<File | null>(null);
   const [selectedVibe, setSelectedVibe] = useState('');
   
-  // Sync step with resetMode if it changes after mount
   useEffect(() => {
       if (resetMode) {
           setStep(99);
       }
   }, [resetMode]);
   
-
-// ... inside component
-
   // Auth State
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,20 +33,14 @@ export function CreateWizard({ onClose, isLoggedIn, onLogin, isAuthLoading, rese
         setAuthMessage({ type: 'error', content: 'Please enter your email address first.' });
         return;
     }
-    // Set a local flag to detect this flow when the user returns (if on same device)
     localStorage.setItem('is_resetting_password', 'true');
-    
-    // We try to use the query param method too, just in case
     const redirectUrl = window.location.origin + '?reset_flow=true';
-    console.log('[CreateWizard] Sending reset email with redirect:', redirectUrl);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: redirectUrl,
-    });
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl });
     setIsLoggingIn(false);
     if (error) {
         setAuthMessage({ type: 'error', content: error.message });
     } else {
-        setAuthMessage({ type: 'success', content: 'Reset link sent! Check your email to set a password.' });
+        setAuthMessage({ type: 'success', content: 'Reset link sent! Check your email.' });
     }
   };
 
@@ -58,7 +52,7 @@ export function CreateWizard({ onClose, isLoggedIn, onLogin, isAuthLoading, rese
       if (error) {
           setAuthMessage({ type: 'error', content: error.message });
       } else {
-          setAuthMessage({ type: 'success', content: 'Password updated successfully! You are now logged in.' });
+          setAuthMessage({ type: 'success', content: 'Password updated! Logging you in...' });
           if (onPasswordUpdated) onPasswordUpdated();
           setTimeout(() => setStep(2), 1500);
       }
@@ -70,47 +64,29 @@ export function CreateWizard({ onClose, isLoggedIn, onLogin, isAuthLoading, rese
      setAuthMessage(null);
      
      if (isSignUp) {
-       // Sign Up Logic
-       const { error } = await supabase.auth.signUp({
-         email,
-         password,
-       });
+       const { error } = await supabase.auth.signUp({ email, password });
        setIsLoggingIn(false);
        if (error) {
          if (error.message.includes('already registered')) {
-             setAuthMessage({ 
-                 type: 'error', 
-                 content: 'This email is already registered. Please login with password or use Google.'
-             });
-             setIsSignUp(false); // Fuse: Switch to login automatically
+             setAuthMessage({ type: 'error', content: 'Email already registered. Please login.' });
+             setIsSignUp(false); 
          } else {
              setAuthMessage({ type: 'error', content: error.message });
          }
        } else {
-         setAuthMessage({ type: 'success', content: 'Account created! Please check your email to confirm.' });
+         setAuthMessage({ type: 'success', content: 'Account created! Confirm via email.' });
          setIsSignUp(false);
        }
      } else {
-       // Login Logic
-       const { error } = await supabase.auth.signInWithPassword({
-         email,
-         password
-       });
+       const { error } = await supabase.auth.signInWithPassword({ email, password });
        setIsLoggingIn(false);
        if (error) {
-           setAuthMessage({ 
-               type: 'error', 
-               content: 'Invalid credentials. Please check your password or try Google login.'
-           });
+           setAuthMessage({ type: 'error', content: 'Invalid credentials.' });
        } else {
            setStep(2);
        }
      }
   };
-
-// ... render content ...
-
-
 
   // Payment State
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success'>('idle');
@@ -125,7 +101,6 @@ export function CreateWizard({ onClose, isLoggedIn, onLogin, isAuthLoading, rese
 
   const handleGenerate = () => {
     setIsProcessing(true);
-    // Simulate AI Generation
     setTimeout(() => {
       setIsProcessing(false);
       setStep(6);
@@ -137,310 +112,383 @@ export function CreateWizard({ onClose, isLoggedIn, onLogin, isAuthLoading, rese
       setFile(e.target.files[0]);
     }
   };
-  
-  /* Removed OTP Logic */
 
   return (
-    <div className="wizard-overlay">
-      <div className="wizard-modal">
-        <button className="close-btn" onClick={onClose}>×</button>
+    <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-xl p-4 cursor-pointer"
+        onClick={onClose}
+    >
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.96, y: 15 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.96, y: 15 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+        className="w-full max-w-lg relative cursor-default"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Boutique Glow */}
+        <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-primary/5 to-primary/20 blur-2xl rounded-[40px] opacity-100" />
         
-        {/* STEP 1: AUTHENTICATION (Skipped if isLoggedIn) */}
-        {step === 1 && (
-           <div className="wizard-step fade-in">
-             <h2>Welcome to VibeVids 👋</h2>
-             <p className="auth-subtitle">Login to start creating your viral video.</p>
-             
-             <div className="auth-container">
-               <button className="google-btn" disabled={isAuthLoading} onClick={() => { 
-                   if (onLogin) onLogin();
-                   else {
-                     setStep(2); 
-                   }
-               }}>
-                 {isAuthLoading ? <div className="spinner-small" style={{borderTopColor: '#666', marginRight: '0.5rem'}}></div> : <img src="https://lh3.googleusercontent.com/COxitqgJr1sJnIDe8-jiKhxDx1FrYbtRHKJ9z_hELisAlapwE9LUPh6fcXIfb5vwpbMl4xl9H9TRFPc5NOO8Sb3VSgIBrfRYvW6cUA" alt="G" />}
-                 {isAuthLoading ? 'Connecting...' : 'Continue with Google'}
-               </button>
-               
-               <div className="auth-divider">
-                 <span>OR</span>
-               </div>
+        <div className="relative bg-background border border-border shadow-[0_40px_100px_-20px_rgba(0,0,0,0.2)] dark:shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)] rounded-[32px] overflow-hidden flex flex-col">
+          <button 
+              className="absolute right-6 top-6 w-10 h-10 rounded-full bg-muted/50 hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-all z-50 cursor-pointer border border-border" 
+              onClick={onClose}
+          >
+              <span className="text-xl leading-none">×</span>
+          </button>
 
-               <div className="email-auth">
-                   <div className="form-group">
-                     <label>Email Address</label>
-                     <input 
-                       type="email" 
-                       className="wizard-input"
-                       placeholder="you@example.com"
-                       value={email}
-                       onChange={(e) => setEmail(e.target.value)}
-                     />
+          <div className="p-10 lg:p-12">
+        
+            {/* STEP 1: AUTHENTICATION */}
+            {step === 1 && (
+              <div className="animate-in fade-in duration-700">
+                <div className="text-center mb-10">
+                   <div className="label-caps px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-5 inline-flex">
+                        secure access
                    </div>
-                   <div className="form-group">
-                     <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem'}}>
-                       <label style={{marginBottom: 0}}>Password</label>
-                       {!isSignUp && <span onClick={handleResetPassword} style={{fontSize: '0.8rem', color: '#666', cursor: 'pointer', textDecoration: 'underline'}}>Forgot?</span>}
-                     </div>
-                     <input 
-                       type="password" 
-                       className="wizard-input"
-                       placeholder="********"
-                       value={password}
-                       onChange={(e) => setPassword(e.target.value)}
-                     />
-                   </div>
-                   
-                   {/* Referral Code Logic */}
-                   {/* Referral code section not modified */}
-                   <div className="referral-input-section">
-                     <details className="referral-details">
-                       <summary>Have a referral code?</summary>
-                       <input 
-                         type="text" 
-                         className="wizard-input referral-code-input"
-                         placeholder="Enter code (e.g. VIBE20)"
-                       />
-                     </details>
-                   </div>
-                   
-                   {authMessage && (
-                        <div style={{
-                            color: authMessage.type === 'error' ? '#d32f2f' : '#2e7d32', 
-                            fontSize: '0.9rem', 
-                            marginBottom: '1rem', 
-                            padding: '0.75rem', 
-                            background: authMessage.type === 'error' ? '#ffebee' : '#e8f5e9', 
-                            borderRadius: '8px', 
-                            textAlign: 'center', 
-                            border: `1px solid ${authMessage.type === 'error' ? '#ffcdd2' : '#c8e6c9'}`
-                        }}>
-                            {authMessage.content}
-                        </div>
-                   )}
-                   
-                   <button className="wizard-btn outline" disabled={!email || !password || isLoggingIn} onClick={handleEmailAuth} style={{display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem'}}>
-                     {isLoggingIn && <div className="spinner-small" style={{borderTopColor: 'var(--primary)', width: '20px', height: '20px', borderWidth: '2px', marginBottom: 0}}></div>}
-                     {isLoggingIn ? 'Processing...' : (isSignUp ? 'Create Account' : 'Login with Password')}
-                   </button>
-                   
-                   <p 
-                     style={{fontSize: '0.8rem', textAlign: 'center', marginTop: '1rem', color: '#666', cursor: 'pointer', textDecoration: 'underline'}}
-                     onClick={() => setIsSignUp(!isSignUp)}
-                   >
-                     {isSignUp ? 'Already have an account? Login' : 'Need an account? Sign Up'}
+                   <h2 className="text-3xl font-extrabold text-foreground tracking-tight mb-2">
+                     {isSignUp ? 'Create account' : 'Welcome back'}
+                   </h2>
+                   <p className="text-muted-foreground text-sm font-medium">
+                     {isSignUp ? 'Join us to create your first magic moment.' : 'Enter your details to create more magic.'}
                    </p>
-               </div>
-             </div>
-           </div>
-        )}
-
-
-        {/* STEP 99: RESET PASSWORD (Only for Recovery Flow) */}
-        {step === 99 && (
-            <div className="wizard-step fade-in">
-                <h2>Set New Password 🔐</h2>
-                <div style={{background: '#e3f2fd', color: '#1565c0', padding: '0.75rem', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.9rem', textAlign: 'center'}}>
-                    <strong>You are securely logged in.</strong><br/>
-                    Update your password below, or close this window to access your dashboard.
                 </div>
-                
-                <div className="email-auth">
-                    <div className="form-group">
-                        <label>New Password</label>
-                        <input 
+
+                <div className="space-y-6">
+                  <Button 
+                   variant="outline" 
+                   className="w-full h-14 flex gap-4 text-[11px] font-bold uppercase tracking-[0.1em] rounded-full border-border bg-muted/5 hover:bg-muted/10 hover:text-foreground transition-all text-foreground shadow-sm" 
+                   disabled={isAuthLoading} 
+                   onClick={() => onLogin ? onLogin() : setStep(2)}
+                  >
+                      {isAuthLoading ? <Spinner /> : <img src="https://lh3.googleusercontent.com/COxitqgJr1sJnIDe8-jiKhxDx1FrYbtRHKJ9z_hELisAlapwE9LUPh6fcXIfb5vwpbMl4xl9H9TRFPc5NOO8Sb3VSgIBrfRYvW6cUA" alt="G" className="w-5 h-5"/>}
+                      CONTINUE WITH GOOGLE
+                  </Button>
+                  
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border"></span></div>
+                    <div className="relative flex justify-center text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground"><span className="bg-background px-6">Or use email</span></div>
+                  </div>
+
+                  <div className="space-y-5">
+                      <div className="space-y-2">
+                        <label className="label-caps text-muted-foreground/60 ml-7">Email Address</label>
+                        <Input 
+                           type="email" 
+                           placeholder="you@example.com" 
+                           value={email} 
+                           onChange={(e) => setEmail(e.target.value)}
+                           className="rounded-full bg-muted/5 border-input h-14 px-7 text-sm focus:ring-1 focus:ring-primary/40 transition-all text-foreground font-medium tracking-tight placeholder:text-black/60"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center px-7">
+                          <label className="label-caps text-muted-foreground/60">Password</label>
+                          {!isSignUp && <span onClick={handleResetPassword} className="label-caps text-primary hover:text-primary/80 transition-colors cursor-pointer tracking-[0.1em]">Forgot?</span>}
+                        </div>
+                        <Input 
+                           type="password" 
+                           placeholder="••••••••" 
+                           value={password} 
+                           onChange={(e) => setPassword(e.target.value)} 
+                           className="rounded-full bg-muted/5 border-input h-14 px-7 text-sm focus:ring-1 focus:ring-primary/40 transition-all text-foreground font-medium tracking-tight placeholder:text-black/60"
+                        />
+                      </div>
+                      
+                      {authMessage && (
+                           <div className={cn("text-xs p-3 rounded-xl text-center font-medium tracking-tight border", authMessage.type === 'error' ? "bg-red-500/5 text-red-400 border-red-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20")}>
+                               {authMessage.content}
+                           </div>
+                      )}
+                      
+                      <Button 
+                       variant="premium"
+                       className="w-full h-14 rounded-full font-bold uppercase tracking-[0.1em] text-[11px] shadow-[0_20px_40px_-15px_rgba(225,29,72,0.4)] transition-all active:scale-[0.98] mt-2 border-0" 
+                       disabled={!email || !password || isLoggingIn} 
+                       onClick={handleEmailAuth}
+                      >
+                        <span className="relative z-10">
+                          {isLoggingIn ? <Spinner className="text-white" /> : (isSignUp ? 'CREATE ACCOUNT' : 'LOGIN')}
+                        </span>
+                      </Button>
+                      
+                    <p className="text-center label-caps text-muted-foreground/60 cursor-pointer hover:text-foreground transition-colors pt-6 tracking-[0.1em]" onClick={() => setIsSignUp(!isSignUp)}>
+                      {isSignUp ? 'Already have an account? Log In' : 'Need an account? Sign Up'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+        {/* STEP 99: RESET PASSWORD */}
+        {step === 99 && (
+            <div className="animate-in slide-in-from-bottom-6 duration-700 p-8 text-center">
+                <div className="mb-10 text-center">
+                    <h2 className="text-3xl font-black text-foreground tracking-tighter mb-2">
+                        Reset password
+                    </h2>
+                    <p className="text-muted-foreground text-sm font-medium">Enter a new secure password for your account.</p>
+                </div>
+
+                <div className="space-y-6">
+                    <div className="space-y-2 text-left">
+                        <label className="label-caps text-muted-foreground ml-1">New Password</label>
+                        <Input 
                             type="password" 
-                            className="wizard-input" 
-                            placeholder="Current mood: Secure"
-                            value={password}
-                            onChange={e => setPassword(e.target.value)}
+                            placeholder="••••••••" 
+                            value={password} 
+                            onChange={e => setPassword(e.target.value)} 
+                            className="rounded-xl bg-muted/10 border-input h-12 px-4 text-sm focus:ring-1 focus:ring-primary/50 transition-all text-foreground font-medium"
                         />
                     </div>
-                    
                     {authMessage && (
-                        <div style={{
-                            color: authMessage.type === 'error' ? '#d32f2f' : '#2e7d32', 
-                            fontSize: '0.9rem', 
-                            marginBottom: '1rem', 
-                            padding: '0.75rem', 
-                            background: authMessage.type === 'error' ? '#ffebee' : '#e8f5e9', 
-                            borderRadius: '8px', 
-                            textAlign: 'center', 
-                            border: `1px solid ${authMessage.type === 'error' ? '#ffcdd2' : '#c8e6c9'}`
-                        }}>
+                        <div className={cn("text-xs p-3 rounded-xl text-center font-medium border", authMessage.type === 'error' ? "bg-red-500/10 text-red-400 border-red-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20")}>
                             {authMessage.content}
                         </div>
                     )}
-
-                    <button className="wizard-btn" onClick={handleUpdatePassword} disabled={!password || isLoggingIn}>
-                        {isLoggingIn ? 'Updating...' : 'Update Password & Login'}
-                    </button>
-                    
-                    <button className="wizard-btn secondary" style={{marginTop: '1rem'}} onClick={onClose}>
-                        I'm good, Go to Dashboard
-                    </button>
+                    <Button 
+                        className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-foreground font-bold text-sm shadow-[0_8px_24px_-8px_rgba(225,29,72,0.4)] transition-all active:scale-[0.98] mt-2" 
+                        onClick={handleUpdatePassword} 
+                        disabled={!password || isLoggingIn}
+                    >
+                        {isLoggingIn ? <Spinner className="mr-2" /> : 'Update Password'}
+                    </Button>
+                    <Button variant="ghost" className="w-full text-muted-foreground text-xs font-medium hover:text-foreground transition-colors py-2" onClick={onClose}>
+                        Cancel
+                    </Button>
                 </div>
             </div>
         )}
 
+        {/* STEP 2: BASICS */}
         {step === 2 && (
-          <div className="wizard-step fade-in">
-            <h2>Step 2: The Basics</h2>
-            <div className="form-group">
-              <label>Upload a Photo 📸</label>
-              <div className="upload-box" onClick={() => document.getElementById('file-upload')?.click()}>
-                {file ? (
-                  <div className="file-preview">
-                    <img src={URL.createObjectURL(file)} alt="Preview" style={{borderRadius: 8, height: 100, objectFit: 'cover'}} />
-                    <span>{file.name}</span>
-                  </div>
-                ) : (
-                  <span>Click to Upload</span>
-                )}
-                <input 
-                  id="file-upload" 
-                  type="file" 
-                  hidden 
-                  accept="image/*"
-                  onChange={handleFileChange}
+          <div className="animate-in fade-in duration-500">
+            <div className="mb-6">
+                <h2 className="text-2xl font-black text-foreground tracking-tighter mb-1">Create Video</h2>
+                <p className="text-muted-foreground text-sm font-medium">Upload a photo and add your message.</p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-muted-foreground/60 ml-1">Photo Reference</label>
+                <div 
+                    className="border-2 border-dashed border-border rounded-2xl bg-muted/10 p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/30 hover:border-primary/20 transition-all group"
+                    onClick={() => document.getElementById('file-upload')?.click()}
+                >
+                  {file ? (
+                    <div className="relative text-center animate-in zoom-in-95">
+                      <img src={URL.createObjectURL(file)} alt="Preview" className="h-24 object-cover rounded-xl shadow-xl mx-auto mb-2 border border-border" />
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">{file.name}</span>
+                    </div>
+                  ) : (
+                    <div className="text-center space-y-2">
+                        <div className="w-10 h-10 rounded-full bg-muted/20 flex items-center justify-center mx-auto text-xl">📸</div>
+                        <span className="label-caps text-muted-foreground/60">Upload Photo</span>
+                    </div>
+                  )}
+                  <input id="file-upload" type="file" hidden accept="image/*" onChange={handleFileChange} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="label-caps text-muted-foreground ml-1">Message</label>
+                <textarea 
+                  className="flex min-h-[80px] w-full rounded-xl border border-input bg-muted/10 px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all text-foreground font-medium"
+                  placeholder="Ex: Happy Birthday to the queen!" 
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
                 />
               </div>
             </div>
-            <div className="form-group">
-              <label>Add your Message ✍️</label>
-              <textarea 
-                placeholder="Ex: Happy Birthday to the queen of procrastination!" 
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-              />
-            </div>
-            <div className="wizard-actions">
-                {/* If came from Dashboard (isLoggedIn), going back from step 2 should probably close or keep at 2? For now going back to Start if not logged in. */}
-                {!isLoggedIn && <button className="wizard-btn secondary" onClick={() => setStep(1)}>← Back</button>}
-                <button 
-                  className="wizard-btn" 
-                  disabled={!file || !text}
-                  onClick={() => setStep(3)}
+            <div className="flex justify-between items-center mt-6 pt-4 border-t border-border">
+                {!isLoggedIn ? (
+                    <Button variant="ghost" className="text-muted-foreground hover:text-foreground text-xs font-bold" onClick={() => setStep(1)}>BACK</Button>
+                ) : <div/>}
+                <Button 
+                    className="h-12 px-8 rounded-xl bg-primary hover:bg-primary/90 text-foreground font-bold text-sm shadow-[0_8px_24px_-8px_rgba(225,29,72,0.4)] transition-all" 
+                    disabled={!file || !text} 
+                    onClick={() => setStep(3)}
                 >
-                  Next: Pick Vibe →
-                </button>
+                    PROCEED →
+                </Button>
             </div>
           </div>
         )}
 
+        {/* STEP 3: VIBE */}
         {step === 3 && (
-          <div className="wizard-step fade-in">
-             <h2>Step 3: Choose Vibe ✨</h2>
-             <div className="vibes-grid">
+          <div className="animate-in fade-in duration-500 p-8">
+             <div className="mb-8">
+                <h2 className="text-2xl font-black text-foreground tracking-tighter mb-1">Pick Vibe</h2>
+                <p className="text-muted-foreground text-sm font-medium">Select the visual tone of your gift.</p>
+             </div>
+
+             <div className="grid grid-cols-2 gap-3">
                {['Romantic 🌹', 'Roast 🔥', 'Cinematic 🎬', 'Meme 🤪', 'Retro 🕹️', 'Minimal 🌫️'].map(vibe => (
-                 <div 
+                 <motion.div 
                    key={vibe} 
-                   className={`vibe-option ${selectedVibe === vibe ? 'selected' : ''}`}
+                   whileHover={{ y: -2, scale: 1.02 }}
+                   whileTap={{ scale: 0.98 }}
+                   className={cn(
+                       "p-4 rounded-xl border transition-all text-center cursor-pointer label-caps group",
+                       selectedVibe === vibe 
+                        ? "border-primary bg-primary text-foreground shadow-lg shadow-primary/20" 
+                        : "bg-muted/10 border-border text-muted-foreground hover:border-primary/20 hover:text-foreground"
+                   )}
                    onClick={() => setSelectedVibe(vibe)}
                  >
                    {vibe}
-                 </div>
+                 </motion.div>
                ))}
              </div>
-             <div className="wizard-actions">
-               <button className="wizard-btn secondary" onClick={() => setStep(2)}>← Back</button>
-               <button 
-                className="wizard-btn" 
-                disabled={!selectedVibe}
+
+             <div className="flex justify-between items-center mt-10 pt-4 border-t border-border">
+               <Button variant="ghost" className="text-muted-foreground hover:text-foreground text-xs font-bold" onClick={() => setStep(2)}>BACK</Button>
+               <Button 
+                className="h-12 px-8 rounded-xl bg-primary hover:bg-primary/90 text-foreground font-bold text-sm shadow-[0_8px_24px_-8px_rgba(225,29,72,0.4)] transition-all" 
+                disabled={!selectedVibe} 
                 onClick={() => setStep(4)}
-              >
-                Next: Review →
-              </button>
+               >
+                 REVIEW →
+               </Button>
              </div>
           </div>
         )}
 
+        {/* STEP 4: REVIEW */}
         {step === 4 && (
-          <div className="wizard-step fade-in">
-            <h2>Step 4: Review Summary</h2>
-            <div className="summary-box">
-              <p><strong>Image:</strong> {file?.name}</p>
-              <p><strong>Message:</strong> "{text}"</p>
-              <p><strong>Vibe:</strong> {selectedVibe}</p>
-              <p className="price-tag">Total: $4.99</p>
-            </div>
-            <div className="wizard-actions">
-              <button className="wizard-btn secondary" onClick={() => setStep(3)}>← Back</button>
-              <button 
-                className="wizard-btn primary-glow" 
-                onClick={() => setStep(5)} // Go to Payment
-              >
-                Proceed to Payment →
-              </button>
-            </div>
-          </div>
-        )}
+          <div className="animate-in fade-in duration-500 p-8">
+             <div className="mb-8">
+                <h2 className="text-2xl font-bold text-foreground tracking-tight mb-1">Review</h2>
+                <p className="text-muted-foreground text-sm">Verify your details before generating.</p>
+             </div>
 
-        {step === 5 && (
-            <div className="wizard-step fade-in payment-step">
-                <h2>Step 5: Secure Payment 💳</h2>
-                <div className="payment-summary-card">
-                    <div className="pay-row">
-                        <span>Video Package (1080p)</span>
-                        <span>$4.99</span>
-                    </div>
-                    <div className="pay-row total">
-                        <span>Total</span>
-                        <span>$4.99</span>
-                    </div>
+            <div className="bg-muted/10 border border-border p-6 rounded-2xl space-y-4">
+                <div className="flex justify-between items-center border-b border-border pb-3">
+                    <span className="text-xs font-semibold text-muted-foreground/60">Image</span>
+                    <span className="text-xs font-bold text-foreground truncate max-w-[150px]">{file?.name}</span>
                 </div>
-                
-                {paymentStatus === 'idle' && (
-                    <div className="dummy-payment-options">
-                        <button className="pay-method selected">
-                           <span>💳 Card</span>
-                        </button>
-                         <button className="pay-method">
-                           <span>🅿️ PayPal</span>
-                        </button>
+                <div className="flex justify-between items-center border-b border-border pb-3">
+                    <span className="text-xs font-semibold text-muted-foreground/60">Vibe</span>
+                    <span className="text-xs font-bold text-foreground">{selectedVibe}</span>
+                </div>
+                <div className="space-y-1 py-1">
+                    <span className="text-xs font-semibold text-muted-foreground/60 block">Message</span>
+                    <p className="font-medium italic text-sm text-foreground/80 leading-relaxed">"{text}"</p>
+                </div>
+                <div className="pt-4 flex justify-between items-center border-t border-border mt-2">
+                    <span className="text-sm font-bold text-foreground uppercase tracking-widest">TOTAL</span>
+                    <span className="text-2xl font-bold text-primary">$4.99</span>
+                </div>
+            </div>
+
+            <div className="flex justify-between items-center mt-10 pt-4 border-t border-border">
+              <Button variant="ghost" className="text-muted-foreground hover:text-foreground text-xs font-bold" onClick={() => setStep(3)}>BACK</Button>
+              <Button 
+                className="h-12 px-10 rounded-xl bg-primary hover:bg-primary/90 text-foreground font-bold text-sm shadow-[0_8px_24px_-8px_rgba(225,29,72,0.4)] transition-all" 
+                onClick={() => setStep(5)}
+              >
+                CHECKOUT →
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 5: PAYMENT */}
+        {step === 5 && (
+            <div className="animate-in fade-in duration-500 p-8">
+                 <div className="mb-8">
+                    <h2 className="text-2xl font-bold text-foreground tracking-tight mb-1">Payment</h2>
+                    <p className="text-muted-foreground text-sm">Unlock your high-definition gift.</p>
+                 </div>
+
+                 <div className="space-y-6">
+                    <div className="flex justify-between items-center bg-emerald-500/10 p-6 rounded-2xl border border-emerald-500/20 text-emerald-400 overflow-hidden relative">
+                        <span className="font-bold uppercase tracking-widest text-[10px]">Price</span>
+                        <span className="font-bold text-2xl">$4.99</span>
                     </div>
-                )}
-                
-                {paymentStatus === 'processing' ? (
-                     <div className="processing-state compact">
-                        <div className="spinner-small"></div>
-                        <p>Processing Transaction...</p>
-                     </div>
-                ) : (
-                    <div className="wizard-actions">
-                      <button className="wizard-btn secondary" onClick={() => setStep(4)}>← Back</button>
-                      <button className="wizard-btn primary-glow" onClick={handlePayment}>
-                        Pay $4.99 & Generate
-                      </button>
+                    
+                    {paymentStatus === 'idle' && (
+                        <div className="flex flex-col gap-3">
+                            <Button variant="outline" className="h-14 rounded-xl border-border bg-muted/10 hover:bg-muted/20 hover:text-foreground transition-all text-sm font-semibold flex justify-between px-6">
+                                <span>Credit Card</span>
+                                <span className="text-xl">💳</span>
+                            </Button>
+                             <Button variant="outline" className="h-14 rounded-xl border-border bg-muted/10 hover:bg-muted/20 hover:text-foreground transition-all text-sm font-semibold flex justify-between px-6">
+                                <span>PayPal</span>
+                                <span className="text-xl">🅿️</span>
+                            </Button>
+                        </div>
+                    )}
+                    
+                    {paymentStatus === 'processing' && (
+                         <div className="text-center py-8 space-y-4">
+                            <div className="w-12 h-12 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto opacity-50"></div>
+                            <p className="text-muted-foreground font-bold uppercase tracking-[0.1em] text-[10px]">Authenticating Payment...</p>
+                         </div>
+                    )}
+                </div>
+
+                {paymentStatus === 'idle' && (
+                    <div className="flex justify-between items-center mt-10 pt-4 border-t border-border">
+                       <Button variant="ghost" className="text-muted-foreground hover:text-foreground text-xs font-bold" onClick={() => setStep(4)}>BACK</Button>
+                       <Button 
+                        className="h-12 px-8 rounded-xl bg-primary hover:bg-primary/90 text-foreground font-bold text-sm shadow-[0_8px_24px_-8px_rgba(225,29,72,0.4)] transition-all" 
+                        onClick={handlePayment}
+                       >
+                         PAY & GENERATE
+                       </Button>
                     </div>
                 )}
             </div>
         )}
 
+        {/* STEP 6: SUCCESS */}
         {step === 6 && (
-          <div className="wizard-step fade-in">
-            {isProcessing ? (
-              <div className="processing-state">
-                <div className="spinner"></div>
-                <h3>Cooking up your video... 🍳</h3>
-                <p>Analyzing pixels, sprinkling vibes, validating hype.</p>
-              </div>
-            ) : (
-               <div className="result-container">
-                 <div className="success-anim">🎉</div>
-                 <h2>Video Ready!</h2>
-                 <div className="result-preview">
-                   <div className="video-mock">
-                     <div className="play-icon">▶</div>
-                   </div>
+          <div className="animate-in fade-in duration-700 text-center p-10">
+             {isProcessing ? (
+               <div className="space-y-8 py-10">
+                 <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+                 <div className="space-y-2">
+                     <h3 className="text-2xl font-bold text-foreground tracking-tight">Crafting Gift...</h3>
+                     <p className="text-muted-foreground text-sm max-w-[200px] mx-auto font-medium">Please wait while we synthesize your masterpiece.</p>
                  </div>
-                 <p style={{marginTop: '1rem'}}>Your video is processed and ready to download.</p>
-                 <button className="wizard-btn" onClick={onClose}>Download & Share</button>
                </div>
-            )}
+             ) : (
+               <div className="space-y-8 animate-in zoom-in-95 duration-1000">
+                 <div className="space-y-2">
+                    <div className="text-5xl mb-4">🎉</div>
+                    <h2 className="text-3xl font-bold text-foreground tracking-tight leading-tight">
+                        Your Gift is <br/>
+                        <span className="text-gradient">Ready!</span>
+                    </h2>
+                    <p className="text-muted-foreground text-sm font-medium">Your vertical video is processed and ready.</p>
+                 </div>
+                 
+                 <div className="aspect-[9/16] bg-muted/10 rounded-3xl mx-auto max-w-[200px] relative group cursor-pointer overflow-hidden shadow-xl border border-border transition-transform">
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/20 transition-all">
+                        <div className="w-14 h-14 bg-white/10 backdrop-blur-xl rounded-full flex items-center justify-center border border-white/10 shadow-2xl">
+                            <span className="ml-1 text-foreground text-xl">▶</span>
+                        </div>
+                    </div>
+                 </div>
+                 
+                 <Button 
+                    variant="premium"
+                    className="w-full h-14 rounded-xl text-foreground font-bold text-sm shadow-[0_8px_32px_-8px_rgba(225,29,72,0.5)] transition-all mt-4" 
+                    onClick={onClose}
+                 >
+                    DOWNLOAD MAGIC
+                 </Button>
+               </div>
+             )}
           </div>
         )}
-      </div>
-    </div>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }
