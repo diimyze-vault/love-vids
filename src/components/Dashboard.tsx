@@ -19,6 +19,8 @@ import {
   ExternalLink,
   Copy,
   Shield,
+  Menu,
+  X,
 } from "lucide-react";
 
 type Tab = "gallery" | "rewards" | "settings";
@@ -115,74 +117,93 @@ export function Dashboard({
     }
   };
 
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   const navItems = [
     { id: "gallery", label: "My Videos", icon: Video },
     { id: "rewards", label: "Referrals", icon: Trophy },
   ] as const;
 
-  return (
-    <div className="flex min-h-screen bg-background text-foreground selection:bg-primary/20 font-sans overflow-hidden">
-      {/* SIDEBAR */}
-      <aside className="w-[280px] bg-background border-r border-border/50 flex flex-col h-screen shrink-0 z-50">
-        <div className="h-20 flex items-center px-8 shrink-0 border-b border-border/50">
-          <div className="text-xl font-bold text-gradient tracking-tight">
-            VibeVids.ai
-          </div>
+  const SidebarContent = () => (
+    <>
+      <div className="hidden lg:flex h-20 items-center px-8 shrink-0 border-b border-border/50">
+        <div className="text-xl font-bold text-gradient tracking-tight">
+          VibeVids.ai
         </div>
+      </div>
 
-        <div className="flex-1 py-8 px-4 space-y-10 overflow-y-auto custom-scrollbar">
-          <div className="space-y-4">
-            <div className="space-y-1">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const active = activeTab === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => setActiveTab(item.id as Tab)}
+      <div className="flex-1 py-8 px-4 space-y-10 overflow-y-auto custom-scrollbar">
+        <div className="space-y-4">
+          <div className="space-y-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const active = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setActiveTab(item.id as Tab);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={cn(
+                    "group focus:outline-none w-full flex items-center gap-4 px-4 py-3 rounded-xl text-[11px] font-semibold uppercase tracking-wider transition-all duration-200 relative overflow-hidden cursor-pointer",
+                    active
+                      ? "bg-primary text-white"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/10 border border-transparent"
+                  )}
+                >
+                  <Icon
                     className={cn(
-                      "group focus:outline-none w-full flex items-center gap-4 px-4 py-3 rounded-xl text-[11px] font-semibold uppercase tracking-wider transition-all duration-200 relative overflow-hidden cursor-pointer",
-                      active
-                        ? "bg-primary text-white"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/10 border border-transparent"
+                      "w-[18px] h-[18px] shrink-0 transition-transform duration-300",
+                      active ? "scale-110" : "group-hover:scale-110"
                     )}
-                  >
-                    <Icon
-                      className={cn(
-                        "w-[18px] h-[18px] shrink-0 transition-transform duration-300",
-                        active ? "scale-110" : "group-hover:scale-110"
-                      )}
-                    />
-                    <span className="relative z-10">{item.label}</span>
-                  </button>
-                );
-              })}
-            </div>
+                  />
+                  <span className="relative z-10">{item.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
+      </div>
 
-        <div className="p-4 border-t border-border/50 space-y-3 shrink-0 bg-muted/5">
-          <div className="p-4 rounded-xl bg-card border border-border/50 flex items-center gap-4 relative group">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-base font-bold border border-primary/20 shrink-0">
-              {user.email?.[0]?.toUpperCase()}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-bold truncate text-foreground uppercase tracking-wider leading-none">
-                {user.email?.split("@")[0]}
-              </p>
-            </div>
-            <button
-              onClick={() => setActiveTab("settings")}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all cursor-pointer border border-transparent hover:border-primary/20"
-            >
-              <Settings className="w-4 h-4" />
-            </button>
+      <div className="p-4 border-t border-border/50 space-y-3 shrink-0 bg-muted/5">
+        <div className="p-4 rounded-xl bg-card border border-border/50 flex items-center gap-4 relative group">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-base font-bold border border-primary/20 shrink-0">
+            {user.email?.[0]?.toUpperCase()}
           </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] font-bold truncate text-foreground uppercase tracking-wider leading-none">
+              {user.email?.split("@")[0]}
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              setActiveTab("settings");
+              setIsMobileMenuOpen(false);
+            }}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all cursor-pointer border border-transparent hover:border-primary/20"
+          >
+            <Settings className="w-4 h-4" />
+          </button>
+        </div>
 
+        <div className="flex items-center justify-between gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => toggleTheme?.()}
+            className="w-10 h-10 rounded-full border border-border/50 hover:bg-muted/40 transition-all text-muted-foreground hover:text-foreground bg-card"
+          >
+            {isDark ? (
+              <Sun className="w-4 h-4" />
+            ) : (
+              <Moon className="w-4 h-4" />
+            )}
+          </Button>
           <Button
             variant="outline"
             onClick={onLogout}
-            className="w-full h-11 rounded-full border-border/50 text-muted-foreground hover:text-red-500 hover:bg-red-50 hover:border-red-200 transition-all font-semibold text-[11px] uppercase tracking-wider"
+            className="flex-1 h-11 rounded-full border-border/50 text-muted-foreground hover:text-red-500 hover:bg-red-50 hover:border-red-200 transition-all font-semibold text-[11px] uppercase tracking-wider"
           >
             {isLoggingOut ? (
               <Spinner className="h-4 w-4" />
@@ -192,41 +213,88 @@ export function Dashboard({
             Sign Out
           </Button>
         </div>
+      </div>
+    </>
+  );
+
+  return (
+    <div className="flex min-h-screen bg-background text-foreground selection:bg-primary/20 font-sans overflow-hidden">
+      {/* DESKTOP SIDEBAR */}
+      <aside className="hidden lg:flex w-[280px] bg-background border-r border-border/50 flex flex-col h-screen shrink-0 z-50">
+        <SidebarContent />
       </aside>
+
+      {/* MOBILE SIDEBAR OVERLAY */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] lg:hidden"
+            />
+            <motion.aside
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed inset-y-0 left-0 w-[280px] bg-background shadow-2xl z-[70] lg:hidden flex flex-col"
+            >
+              <SidebarContent />
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* MAIN CONTENT */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden bg-muted/[0.02]">
         {/* HEADER BAR */}
-        <header className="h-20 border-b border-border/50 bg-background/50 backdrop-blur-xl flex items-center justify-between px-10 shrink-0 z-40">
-          <div className="flex items-center gap-4"></div>
-
+        <header className="h-20 border-b border-border/50 bg-background/50 backdrop-blur-xl flex items-center justify-between px-4 lg:px-10 shrink-0 z-40">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => toggleTheme?.()}
-              className="w-10 h-10 rounded-full border border-border/50 hover:bg-muted/40 transition-all text-muted-foreground hover:text-foreground bg-card"
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="lg:hidden w-10 h-10 rounded-full border border-border/50 bg-card text-muted-foreground"
             >
-              {isDark ? (
-                <Sun className="w-4 h-4" />
-              ) : (
-                <Moon className="w-4 h-4" />
-              )}
+              <Menu className="w-5 h-5" />
             </Button>
+            <div className="lg:hidden text-lg font-bold text-gradient tracking-tight">
+              VibeVids.ai
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 lg:gap-4">
+            <div className="hidden lg:block">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => toggleTheme?.()}
+                className="w-10 h-10 rounded-full border border-border/50 hover:bg-muted/40 transition-all text-muted-foreground hover:text-foreground bg-card"
+              >
+                {isDark ? (
+                  <Sun className="w-4 h-4" />
+                ) : (
+                  <Moon className="w-4 h-4" />
+                )}
+              </Button>
+            </div>
 
             <Button
               onClick={onCreateClick}
               variant="premium"
-              className="h-11 px-8 rounded-full text-[11px] font-semibold uppercase tracking-wider border-0 hover:scale-[1.02] active:scale-[0.95] transition-all"
+              className="h-10 px-4 lg:px-8 rounded-full text-[11px] font-semibold uppercase tracking-wider border-0 hover:scale-[1.02] active:scale-[0.95] transition-all"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              New Video
+              <Plus className="w-4 h-4 lg:mr-2" />
+              <span className="hidden lg:inline">New Video</span>
             </Button>
           </div>
         </header>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar">
-          <section className="py-8 px-10 w-full">
+          <section className="py-6 lg:py-8 px-4 lg:px-10 w-full">
             <AnimatePresence mode="wait">
               {activeTab === "gallery" && (
                 <motion.div
@@ -622,7 +690,7 @@ export function Dashboard({
                         <Button
                           variant="ghost"
                           onClick={handleDeleteAccount}
-                          className="w-full rounded-full h-10 text-[13px] font-semibold uppercase tracking-wider text-red-500 hover:bg-red-50 hover:text-white border border-red-500/20 transition-all"
+                          className="w-full rounded-full h-10 text-[13px] font-semibold uppercase tracking-wider text-red-500 hover:bg-red-600 hover:text-white border border-red-500/20 hover:border-red-600 transition-all"
                         >
                           Delete Account
                         </Button>

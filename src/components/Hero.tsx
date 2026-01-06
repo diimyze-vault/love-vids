@@ -96,7 +96,7 @@ export function Hero({ onCreateClick }: { onCreateClick: () => void }) {
             initial="hidden"
             animate="visible"
             variants={entranceVariants}
-            className="text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.02] tracking-tight text-foreground"
+            className="text-3xl md:text-5xl lg:text-6xl font-bold leading-[1.02] tracking-tight text-foreground"
           >
             Vibe Checks into <br className="hidden lg:block" />
             <span className="text-gradient">Viral Videos</span> 🎥
@@ -139,14 +139,14 @@ export function Hero({ onCreateClick }: { onCreateClick: () => void }) {
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 1.2, ease: [0.23, 1, 0.32, 1], delay: 0.2 }}
-        className="w-full lg:w-[52%] relative flex items-center justify-center lg:justify-end mt-4 lg:mt-0 z-20 order-1 lg:order-2"
+        className="w-full lg:w-[52%] relative flex items-center justify-center lg:justify-end mt-12 lg:mt-0 z-20 order-1 lg:order-2 px-4 md:px-0"
       >
-        <div className="relative w-[280px] md:w-[320px] lg:w-[350px] aspect-[9/16] max-h-[580px] perspective-2000 preserve-3d">
-          <div className="absolute top-1/2 -translate-y-1/2 -left-12 lg:-left-16 z-50">
+        <div className="relative w-full max-w-[280px] md:max-w-[320px] lg:max-w-[350px] aspect-[9/16] perspective-2000 preserve-3d">
+          <div className="absolute top-1/2 -translate-y-1/2 left-2 md:-left-16 lg:-left-20 z-50">
             <motion.button
-              whileHover={{ scale: 1.15, x: -4 }}
+              whileHover={{ scale: 1.1, x: -2 }}
               whileTap={{ scale: 0.9 }}
-              className="rounded-full bg-background border-2 border-foreground/5 hover:border-primary/30 transition-all w-12 h-12 lg:w-14 lg:h-14 flex items-center justify-center text-foreground cursor-pointer group"
+              className="rounded-full bg-background/80 backdrop-blur-md border border-border/50 hover:border-primary/30 shadow-lg transition-all w-10 h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 flex items-center justify-center text-foreground cursor-pointer group"
               onClick={handlePrev}
             >
               <span className="group-hover:-translate-x-0.5 transition-transform duration-300">
@@ -154,11 +154,11 @@ export function Hero({ onCreateClick }: { onCreateClick: () => void }) {
               </span>
             </motion.button>
           </div>
-          <div className="absolute top-1/2 -translate-y-1/2 -right-12 lg:-right-16 z-50">
+          <div className="absolute top-1/2 -translate-y-1/2 right-2 md:-right-16 lg:-right-20 z-50">
             <motion.button
-              whileHover={{ scale: 1.15, x: 4 }}
+              whileHover={{ scale: 1.1, x: 2 }}
               whileTap={{ scale: 0.9 }}
-              className="rounded-full bg-background border border-border/50 hover:border-primary/30 transition-all w-12 h-12 lg:w-14 lg:h-14 flex items-center justify-center text-foreground cursor-pointer group"
+              className="rounded-full bg-background/80 backdrop-blur-md border border-border/50 hover:border-primary/30 shadow-lg transition-all w-10 h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 flex items-center justify-center text-foreground cursor-pointer group"
               onClick={handleNext}
             >
               <span className="group-hover:translate-x-0.5 transition-transform duration-300">

@@ -79,8 +79,8 @@ export function Testimonials() {
         <div className="absolute left-0 top-0 bottom-0 w-64 bg-gradient-to-r from-background to-transparent z-30 pointer-events-none" />
         <div className="absolute right-0 top-0 bottom-0 w-64 bg-gradient-to-l from-background to-transparent z-30 pointer-events-none" />
 
-        <div className="flex overflow-visible py-24 -my-24 overflow-x-hidden">
-          <div className="flex gap-10 whitespace-nowrap px-10 animate-marquee will-change-transform">
+        <div className="flex overflow-hidden py-24 -my-24 group">
+          <div className="flex gap-10 whitespace-nowrap px-10 animate-marquee will-change-transform group-hover:[animation-play-state:paused]">
             {[...reviews, ...reviews].map((review, i) => (
               <TestimonialCard key={i} review={review} />
             ))}
@@ -93,7 +93,7 @@ export function Testimonials() {
 
 function TestimonialCard({ review }: { review: any }) {
   return (
-    <div className="w-[420px] flex-none rounded-2xl bg-card border border-border/50 p-12 flex flex-col justify-between hover:border-primary/50 transition-all duration-700 group relative overflow-hidden hover:">
+    <div className="w-[85vw] md:w-[420px] flex-none rounded-2xl bg-card border border-border/50 p-8 md:p-12 flex flex-col justify-between hover:border-primary/50 transition-all duration-700 group relative overflow-hidden">
       <div className="relative z-10">
         <div className="text-6xl text-gradient opacity-20 mb-8 font-serif leading-none italic group-hover:opacity-60 transition-opacity duration-700">
           “
@@ -183,13 +183,13 @@ export function Pricing({ onCreateClick }: { onCreateClick: () => void }) {
       </div>
 
       <div className="flex justify-center mb-12">
-        <div className="inline-flex items-center glass p-2 rounded-full border border-black/10 dark:border-white/10 relative">
+        <div className="inline-flex items-center glass p-1 md:p-2 rounded-full border border-black/10 dark:border-white/10 relative">
           {(Object.keys(prices) as Array<keyof typeof prices>).map((curr) => (
             <button
               key={curr}
               onClick={() => setCurrency(curr)}
               className={cn(
-                "focus:outline-none px-8 py-3 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all relative z-10",
+                "focus:outline-none px-4 md:px-8 py-2.5 md:py-3 rounded-full text-[10px] md:text-[11px] font-bold uppercase tracking-wider transition-all relative z-10",
                 currency === curr
                   ? "text-white"
                   : "text-muted-foreground hover:text-foreground"
