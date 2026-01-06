@@ -1,11 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { AnimatePresence } from "framer-motion";
 import { Navbar, Footer } from "./components/Navigation";
 import { Hero } from "./components/Hero";
 import { HowItWorks, DemoVideos } from "./components/Sections";
 import { Testimonials, Pricing } from "./components/SocialAndPricing";
-import { CreateWizard } from "./components/CreateWizard";
-import { Dashboard } from "./components/Dashboard";
+
+const CreateWizard = lazy(() =>
+  import("./components/CreateWizard").then((m) => ({ default: m.CreateWizard }))
+);
+const Dashboard = lazy(() =>
+  import("./components/Dashboard").then((m) => ({ default: m.Dashboard }))
+);
 import { supabase } from "./lib/supabase";
 import type { User } from "@supabase/supabase-js";
 import { Analytics } from "@vercel/analytics/react";
@@ -184,7 +189,7 @@ function App() {
   }
 
   return (
-    <>
+    <Suspense fallback={<FullPageSpinner />}>
       {user && !isPasswordReset ? (
         // CHECK FOR SOFT DELETED STATUS
         user.user_metadata?.status === "deleted" ? (
@@ -286,7 +291,7 @@ function App() {
       </AnimatePresence>
       <Analytics />
       <SpeedInsights />
-    </>
+    </Suspense>
   );
 }
 

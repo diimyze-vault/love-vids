@@ -20,7 +20,6 @@ import {
   Copy,
   Shield,
   Menu,
-  X,
 } from "lucide-react";
 
 type Tab = "gallery" | "rewards" | "settings";
