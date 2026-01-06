@@ -241,7 +241,7 @@ function App() {
         )
       ) : (
         <>
-          <div className="app-container">
+          <div className="app-container bg-background text-foreground transition-colors duration-300 min-h-screen">
             <Navbar
               onCreateClick={() => setShowWizard(true)}
               onLogin={() => setShowWizard(true)}

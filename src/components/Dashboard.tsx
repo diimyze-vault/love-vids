@@ -5,27 +5,23 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Card } from "./ui/card";
 import { Spinner } from "./ui/spinner";
-import { Skeleton } from "./ui/skeleton";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "../lib/utils";
 import {
   Sun,
   Moon,
-  LayoutDashboard,
   Video,
   Trophy,
   Settings,
   LogOut,
   Plus,
   ExternalLink,
-  Search,
   Copy,
   Shield,
-  Sparkles,
-  LayoutGrid,
 } from "lucide-react";
 
-type Tab = "overview" | "gallery" | "rewards" | "settings";
+type Tab = "gallery" | "rewards" | "settings";
 
 export function Dashboard({
   onCreateClick,
@@ -42,7 +38,7 @@ export function Dashboard({
   isDark?: boolean;
   toggleTheme?: () => void;
 }) {
-  const [activeTab, setActiveTab] = useState<Tab>("overview");
+  const [activeTab, setActiveTab] = useState<Tab>("gallery");
 
   const [videos] = useState([
     {
@@ -120,17 +116,15 @@ export function Dashboard({
   };
 
   const navItems = [
-    { id: "overview", label: "Overview", icon: LayoutDashboard },
     { id: "gallery", label: "My Videos", icon: Video },
-    { id: "rewards", label: "Rewards", icon: Trophy },
-    { id: "settings", label: "Settings", icon: Settings },
+    { id: "rewards", label: "Referrals", icon: Trophy },
   ] as const;
 
   return (
-    <div className="flex min-h-screen bg-[#fafafa] dark:bg-[#050505] text-foreground selection:bg-primary/20 font-sans overflow-hidden">
+    <div className="flex min-h-screen bg-background text-foreground selection:bg-primary/20 font-sans overflow-hidden">
       {/* SIDEBAR */}
       <aside className="w-[280px] bg-background border-r border-border/50 flex flex-col h-screen shrink-0 z-50">
-        <div className="h-24 flex items-center px-8 shrink-0 border-b border-border/50">
+        <div className="h-20 flex items-center px-8 shrink-0 border-b border-border/50">
           <div className="text-xl font-bold text-gradient tracking-tight">
             VibeVids.ai
           </div>
@@ -138,9 +132,6 @@ export function Dashboard({
 
         <div className="flex-1 py-8 px-4 space-y-10 overflow-y-auto custom-scrollbar">
           <div className="space-y-4">
-            <p className="px-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/40">
-              Navigation
-            </p>
             <div className="space-y-1">
               {navItems.map((item) => {
                 const Icon = item.icon;
@@ -150,7 +141,7 @@ export function Dashboard({
                     key={item.id}
                     onClick={() => setActiveTab(item.id as Tab)}
                     className={cn(
-                      "group focus:outline-none w-full flex items-center gap-4 px-4 py-3 rounded-xl text-[11px] font-semibold uppercase tracking-wider transition-all duration-200 relative overflow-hidden",
+                      "group focus:outline-none w-full flex items-center gap-4 px-4 py-3 rounded-xl text-[11px] font-semibold uppercase tracking-wider transition-all duration-200 relative overflow-hidden cursor-pointer",
                       active
                         ? "bg-primary text-white"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted/10 border border-transparent"
@@ -171,7 +162,7 @@ export function Dashboard({
         </div>
 
         <div className="p-4 border-t border-border/50 space-y-3 shrink-0 bg-muted/5">
-          <div className="p-4 rounded-xl bg-card border border-border/50 flex items-center gap-4">
+          <div className="p-4 rounded-xl bg-card border border-border/50 flex items-center gap-4 relative group">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-base font-bold border border-primary/20 shrink-0">
               {user.email?.[0]?.toUpperCase()}
             </div>
@@ -179,10 +170,13 @@ export function Dashboard({
               <p className="text-[11px] font-bold truncate text-foreground uppercase tracking-wider leading-none">
                 {user.email?.split("@")[0]}
               </p>
-              <p className="text-[9px] font-bold text-primary uppercase tracking-wider mt-1.5 opacity-60">
-                Creator Account
-              </p>
             </div>
+            <button
+              onClick={() => setActiveTab("settings")}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all cursor-pointer border border-transparent hover:border-primary/20"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
           </div>
 
           <Button
@@ -203,27 +197,10 @@ export function Dashboard({
       {/* MAIN CONTENT */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden bg-muted/[0.02]">
         {/* HEADER BAR */}
-        <header className="h-20 border-b border-border/50 bg-background/50 backdrop-blur-xl flex items-center justify-between px-6 shrink-0 z-40">
-          <div className="flex items-center gap-4">
-            <div className="px-3 py-1 rounded-full bg-primary/5 border border-primary/10">
-              <h2 className="text-[11px] font-bold tracking-tight uppercase text-primary">
-                {activeTab}
-              </h2>
-            </div>
-          </div>
+        <header className="h-20 border-b border-border/50 bg-background/50 backdrop-blur-xl flex items-center justify-between px-10 shrink-0 z-40">
+          <div className="flex items-center gap-4"></div>
 
           <div className="flex items-center gap-4">
-            <div className="relative group hidden md:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/30 group-focus-within:text-primary transition-colors" />
-              <input
-                type="search"
-                name="dashboard-search-v2"
-                autoComplete="off"
-                placeholder="Search videos..."
-                className="focus:outline-none h-10 pl-10 pr-4 rounded-full bg-muted/20 border border-border/50 text-sm font-medium focus:ring-2 focus:ring-primary/10 transition-all w-64 placeholder:text-muted-foreground/30"
-              />
-            </div>
-
             <Button
               variant="ghost"
               size="icon"
@@ -249,191 +226,8 @@ export function Dashboard({
         </header>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar">
-          <section className="p-6 max-w-[1400px] mx-auto w-full">
+          <section className="py-8 px-10 w-full">
             <AnimatePresence mode="wait">
-              {activeTab === "overview" && (
-                <motion.div
-                  key="overview"
-                  initial={{ opacity: 0, scale: 0.99 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.99 }}
-                  className="space-y-8"
-                >
-                  <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                    <div className="space-y-2">
-                      <h1 className="text-xl font-semibold tracking-tight text-foreground">
-                        Welcome back!
-                      </h1>
-                      <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-                        System Status:
-                        <span className="flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                          <span className="text-emerald-500">Active</span>
-                        </span>
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-2 space-y-6">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-2xl font-semibold tracking-tight flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
-                            <LayoutGrid className="w-5 h-5 text-primary" />
-                          </div>
-                          Latest Creations
-                        </h3>
-                        <button
-                          onClick={() => setActiveTab("gallery")}
-                          className="focus:outline-none text-[12px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors"
-                        >
-                          View Library →
-                        </button>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {videos.map((video, idx) => (
-                          <motion.div
-                            key={video.id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{
-                              delay: idx * 0.1 + 0.5,
-                              type: "spring",
-                              stiffness: 100,
-                            }}
-                            whileHover={{ y: -4 }}
-                          >
-                            <Card className="rounded-xl border border-border/50 overflow-hidden hover:border-primary/40 transition-all group flex flex-col h-full bg-card/40 backdrop-blur-xl border-b-2 border-b-primary/5">
-                              <div className="aspect-[9/16] max-h-[400px] bg-muted/20 relative overflow-hidden rounded-xl isolate">
-                                {video.thumbnail ? (
-                                  <img
-                                    src={video.thumbnail}
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[2000ms] ease-out"
-                                  />
-                                ) : (
-                                  <div className="absolute inset-0">
-                                    <Skeleton className="w-full h-full rounded-none" />
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                      <div className="flex flex-col items-center gap-3">
-                                        <Spinner className="h-6 w-6 text-primary opacity-60" />
-                                        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/30">
-                                          Processing...
-                                        </span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                )}
-                                <div className="absolute top-4 right-4 z-10">
-                                  <div
-                                    className={cn(
-                                      "px-3 py-1.5 rounded-full text-[10px] font-medium uppercase tracking-wider border backdrop-blur-md",
-                                      video.status === "Ready"
-                                        ? "bg-emerald-500 text-white border-emerald-600"
-                                        : "bg-amber-500 text-white border-amber-600"
-                                    )}
-                                  >
-                                    {video.status}
-                                  </div>
-                                </div>
-                                {video.url && (
-                                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 z-20">
-                                    <Button
-                                      size="sm"
-                                      onClick={() =>
-                                        setPlayingVideo(video.url!)
-                                      }
-                                      className="rounded-full bg-white text-black hover:bg-white/90 font-medium text-[11px] uppercase tracking-wider px-8 h-10 hover:scale-105 transition-transform active:scale-95"
-                                    >
-                                      Play Video
-                                    </Button>
-                                  </div>
-                                )}
-                              </div>
-                              <div className="p-5 flex flex-col gap-2">
-                                <h4 className="text-base font-medium tracking-tight truncate">
-                                  {video.title}
-                                </h4>
-                                <p className="text-[10px] font-medium text-muted-foreground/40 uppercase tracking-wider">
-                                  {video.date}
-                                </p>
-                              </div>
-                            </Card>
-                          </motion.div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="space-y-6">
-                      <div className="space-y-4">
-                        <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40 ml-1">
-                          Milestones
-                        </h3>
-                        <Card className="rounded-xl border border-border/50 p-6 space-y-8 bg-background/50 relative overflow-hidden group border-b-2 border-b-primary/5">
-                          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] rounded-full translate-x-1/4 -translate-y-1/4 pointer-events-none" />
-                          <div className="flex items-center gap-6 relative z-10">
-                            <div className="w-12 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-4xl group-hover:scale-110 transition-all duration-500">
-                              🎟️
-                            </div>
-                            <div className="space-y-1">
-                              <p className="text-[11px] font-medium text-primary uppercase tracking-wider">
-                                Next Reward
-                              </p>
-                              <h4 className="text-xl font-semibold tracking-tight">
-                                HD Reward Tier 1
-                              </h4>
-                            </div>
-                          </div>
-                          <div className="space-y-4 relative z-10">
-                            <div className="flex justify-between items-end mb-1">
-                              <span className="text-[10px] font-medium text-muted-foreground/40 uppercase tracking-wider">
-                                3 / 5 Invites
-                              </span>
-                              <span className="text-[10px] font-medium text-primary">
-                                60%
-                              </span>
-                            </div>
-                            <div className="h-2 w-full bg-muted/30 rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-primary transition-all duration-1000 rounded-full"
-                                style={{ width: "60%" }}
-                              />
-                            </div>
-                            <p className="text-xs text-muted-foreground font-medium opacity-80 leading-relaxed italic">
-                              Refer 2 more friends to unlock 1080p high-fidelity
-                              rendering tokens.
-                            </p>
-                          </div>
-                          <Button
-                            onClick={() => setShowReferral(true)}
-                            className="w-full h-11 rounded-full text-[11px] font-semibold uppercase tracking-wider bg-primary text-white border-0 hover:scale-[1.02] active:scale-[0.98] transition-all"
-                          >
-                            Invite Friends
-                          </Button>
-                        </Card>
-                      </div>
-
-                      <Card className="rounded-xl border border-border/50 p-6 bg-primary/[0.01] space-y-4 relative overflow-hidden border-b-2 border-b-primary/5">
-                        <div className="absolute top-[-10%] right-[-10%] w-48 h-48 bg-primary/10 blur-[80px] rounded-full pointer-events-none" />
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/10">
-                            <Sparkles className="w-5 h-5" />
-                          </div>
-                          <h4 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">
-                            Creator Pro Tip
-                          </h4>
-                        </div>
-                        <p className="text-sm font-medium text-muted-foreground/90 leading-relaxed">
-                          9:16 videos often outperform standard 16:9 ratios by
-                          4x on TikTok. Target vertical narratives for maximum
-                          engagement depth.
-                        </p>
-                      </Card>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
               {activeTab === "gallery" && (
                 <motion.div
                   key="gallery"
@@ -457,7 +251,7 @@ export function Dashboard({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                     {videos.map((video, idx) => (
                       <motion.div
                         key={video.id}
@@ -473,29 +267,14 @@ export function Dashboard({
                       >
                         <Card className="rounded-xl border border-border/50 overflow-hidden group hover:border-primary/40 transition-all flex flex-col h-full bg-card/60 backdrop-blur-xl border-b-2 border-b-primary/5">
                           <div className="aspect-[9/16] bg-muted/40 relative overflow-hidden rounded-xl shrink-0 border-b border-border/20 isolate">
-                            {video.thumbnail ? (
-                              <img
-                                src={video.thumbnail}
-                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[1500ms]"
-                              />
-                            ) : (
-                              <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-muted/10">
-                                <Spinner className="h-6 w-6 text-primary opacity-60" />
-                                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/30">
-                                  Processing...
-                                </span>
-                              </div>
-                            )}
-                            <div
-                              className={cn(
-                                "absolute top-4 right-4 z-20 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider px-4 py-2 border",
-                                video.status === "Ready"
-                                  ? "bg-emerald-500 text-white font-semibold"
-                                  : "bg-amber-500 text-white font-semibold"
-                              )}
-                            >
-                              {video.status}
-                            </div>
+                            <img
+                              src={
+                                video.thumbnail ||
+                                "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80"
+                              }
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[1500ms]"
+                            />
+
                             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 z-20 flex flex-col items-center justify-center p-6 text-center">
                               <div className="space-y-4 mb-8">
                                 <h4 className="text-lg font-semibold tracking-tight text-white leading-tight">
@@ -572,7 +351,7 @@ export function Dashboard({
                 >
                   <div className="space-y-1">
                     <h2 className="text-2xl font-semibold tracking-tight">
-                      Rewards
+                      Referrals
                     </h2>
                     <p className="text-sm text-muted-foreground font-medium opacity-70">
                       Unlock additional high-fidelity rendering capabilities by
@@ -729,7 +508,7 @@ export function Dashboard({
                   className="w-full space-y-8"
                 >
                   <div className="space-y-1">
-                    <h2 className="text-xl font-semibold tracking-tight">
+                    <h2 className="text-2xl font-semibold tracking-tight">
                       Account Settings
                     </h2>
                     <p className="text-sm text-muted-foreground font-medium opacity-70">
@@ -751,9 +530,6 @@ export function Dashboard({
                             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
                               <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-semibold uppercase tracking-wider text-emerald-600 px-2 py-0.5">
                                 Verified
-                              </div>
-                              <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-semibold uppercase tracking-wider text-primary px-2 py-0.5">
-                                Creator Pro
                               </div>
                             </div>
                           </div>
@@ -786,7 +562,7 @@ export function Dashboard({
                                 <Button
                                   onClick={handleChangePassword}
                                   disabled={!newPassword || isChangingPassword}
-                                  className="h-11 px-6 rounded-xl text-[12px] font-semibold uppercase tracking-wider bg-primary text-white border-0"
+                                  className="h-11 px-8 rounded-full text-[12px] font-semibold uppercase tracking-wider bg-primary text-white border-0 transition-all hover:scale-[1.02] active:scale-95"
                                 >
                                   {isChangingPassword ? (
                                     <Spinner className="h-4 w-4" />
@@ -837,9 +613,6 @@ export function Dashboard({
                             <h4 className="text-2xl font-semibold tracking-tight text-red-500/90">
                               Danger Zone
                             </h4>
-                            <p className="text-[12px] font-medium text-red-500/40 uppercase tracking-wider">
-                              Privacy Safeguard
-                            </p>
                           </div>
                         </div>
                         <p className="text-sm text-muted-foreground/80 font-medium leading-relaxed">
@@ -935,7 +708,7 @@ export function Dashboard({
                   <div className="flex-1 rounded-xl border border-border/60 h-11 bg-muted/20 flex items-center px-6 font-medium text-xs overflow-hidden whitespace-nowrap opacity-60">
                     vibevids.ai/ref/user123...
                   </div>
-                  <Button className="rounded-xl h-11 px-8 bg-primary text-white text-[11px] font-semibold uppercase tracking-wider border-0 hover:scale-[1.02] transition-transform">
+                  <Button className="rounded-full h-11 px-8 bg-primary text-white text-[11px] font-semibold uppercase tracking-wider border-0 hover:scale-[1.02] transition-transform active:scale-95">
                     Copy
                   </Button>
                 </div>

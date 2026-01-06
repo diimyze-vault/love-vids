@@ -88,17 +88,8 @@ export function Hero({ onCreateClick }: { onCreateClick: () => void }) {
   };
 
   return (
-    <div className="relative flex flex-col lg:flex-row items-center justify-between max-w-7xl mx-auto px-6 py-8 lg:py-0 gap-12 lg:gap-20 lg:min-h-[calc(100vh-85px)] overflow-visible">
+    <div className="relative flex flex-col lg:flex-row items-center justify-between max-w-7xl mx-auto px-6 py-6 lg:py-0 gap-8 lg:gap-20 lg:min-h-[calc(100vh-100px)] overflow-visible">
       <div className="w-full lg:w-[42%] text-center lg:text-left space-y-6 lg:space-y-9 z-10 order-2 lg:order-1">
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={entranceVariants}
-          className="label-caps px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-xl mb-4 inline-flex"
-        >
-          ✨ VALENTINE'S MODE ACTIVE
-        </motion.div>
-
         <div className="space-y-4">
           <motion.h1
             custom={1}
@@ -107,8 +98,8 @@ export function Hero({ onCreateClick }: { onCreateClick: () => void }) {
             variants={entranceVariants}
             className="text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.02] tracking-tight text-foreground"
           >
-            Transform Photos <br className="hidden lg:block" />
-            into <span className="text-gradient">AI Video Gifts</span> 🎁
+            Vibe Checks into <br className="hidden lg:block" />
+            <span className="text-gradient">Viral Videos</span> 🎥
           </motion.h1>
         </div>
 
@@ -117,11 +108,10 @@ export function Hero({ onCreateClick }: { onCreateClick: () => void }) {
           initial="hidden"
           animate="visible"
           variants={entranceVariants}
-          className="text-base lg:text-lg text-muted-foreground max-w-md mx-auto lg:mx-0 leading-relaxed font-medium"
+          className="text-base lg:text-lg text-muted-foreground max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium"
         >
-          Create a moving cinematic tribute for your Valentine, Birthday, or
-          Anniversary in seconds. Just upload a photo and let our AI do the
-          magic.
+          Upload a photo. Pick a vibe. Get a stunning AI video in seconds.
+          Perfect for Valentine's, Birthdays or Roasts.
         </motion.p>
 
         <motion.div
@@ -134,25 +124,13 @@ export function Hero({ onCreateClick }: { onCreateClick: () => void }) {
           <Button
             size="lg"
             variant="premium"
-            className="text-[13px] lg:text-[14px] px-10 py-5 h-auto rounded-full relative group overflow-hidden cursor-pointer transition-all active:scale-95"
+            className="text-[14px] px-12 py-6 h-auto rounded-full relative group overflow-hidden cursor-pointer transition-all active:scale-95"
             onClick={onCreateClick}
           >
             <span className="relative z-10 font-bold tracking-wider uppercase">
               SEND A VIBE 🎁
             </span>
             <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          </Button>
-          <Button
-            size="lg"
-            variant="secondary"
-            className="text-[13px] lg:text-[14px] px-10 py-5 h-auto rounded-full cursor-pointer transition-all duration-300 text-foreground font-semibold uppercase tracking-[0.1em] active:scale-95"
-            onClick={() =>
-              document
-                .getElementById("demos")
-                ?.scrollIntoView({ behavior: "smooth" })
-            }
-          >
-            SEE EXAMPLES
           </Button>
         </motion.div>
       </div>
@@ -180,7 +158,7 @@ export function Hero({ onCreateClick }: { onCreateClick: () => void }) {
             <motion.button
               whileHover={{ scale: 1.15, x: 4 }}
               whileTap={{ scale: 0.9 }}
-              className="rounded-full bg-background border-2 border-foreground/5 hover:border-primary/30 transition-all w-12 h-12 lg:w-14 lg:h-14 flex items-center justify-center text-foreground cursor-pointer group"
+              className="rounded-full bg-background border border-border/50 hover:border-primary/30 transition-all w-12 h-12 lg:w-14 lg:h-14 flex items-center justify-center text-foreground cursor-pointer group"
               onClick={handleNext}
             >
               <span className="group-hover:translate-x-0.5 transition-transform duration-300">

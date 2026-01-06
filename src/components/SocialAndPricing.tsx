@@ -8,70 +8,59 @@ export function Testimonials() {
   const reviews = [
     {
       name: "Tyler F.",
-      comment: "My girlfriend literally cried. Best gift I ever gave.",
+      comment: "My girlfriend literally cried. Best gift ever.",
       role: "Verified Gifter",
       img: "https://i.pravatar.cc/150?u=tyler",
     },
     {
       name: "Jessica K.",
-      comment: "The AI used our inside jokes perfectly. 10/10 recommendation.",
+      comment: "The AI used our inside jokes perfectly. 10/10.",
       role: "Best Friend",
       img: "https://i.pravatar.cc/150?u=jessica",
     },
     {
       name: "Marcus",
-      comment: "So fast and actually looks high effort. Saved my anniversary.",
+      comment: "Fast and high effort. Saved my anniversary.",
       role: "Husband",
       img: "https://i.pravatar.cc/150?u=marcus",
     },
     {
       name: "Sarah L.",
-      comment: "Made a tribute for my mom's 60th. Everyone was in tears.",
+      comment: "Made a tribute for my mom. Everyone was in tears.",
       role: "Daughter",
       img: "https://i.pravatar.cc/150?u=sarah",
     },
     {
       name: "David R.",
-      comment: "No editing skills needed. I looked like a pro in seconds.",
+      comment: "No editing skills needed. Looked like a pro.",
       role: "Tech Lead",
       img: "https://i.pravatar.cc/150?u=david",
     },
     {
       name: "Elena G.",
-      comment: "The music sync is actually insane. It feels so professional.",
+      comment: "The music sync is insane. Feels so professional.",
       role: "Designer",
       img: "https://i.pravatar.cc/150?u=elena",
     },
     {
       name: "Chris P.",
-      comment: "Better than any card or physical gift I've ever sent.",
+      comment: "Better than any card or gift I've ever sent.",
       role: "Visionary",
       img: "https://i.pravatar.cc/150?u=chris",
     },
     {
       name: "Maya W.",
-      comment: "Used it for a pet tribute. Absolutely beautiful results.",
+      comment: "Absolutely beautiful results for my pet tribute.",
       role: "Pet Parent",
       img: "https://i.pravatar.cc/150?u=maya",
     },
   ];
 
-  const firstRow = [...reviews.slice(0, 4), ...reviews.slice(0, 4)];
-  const secondRow = [...reviews.slice(4), ...reviews.slice(4)];
-
   return (
-    <section className="py-40 relative overflow-visible" id="social">
+    <section className="py-16 relative overflow-visible" id="social">
       <div className="absolute top-0 left-1/2 w-[1000px] h-[1000px] bg-primary/5 blur-[160px] rounded-full -translate-x-1/2 -translate-y-1/2 opacity-20 dark:opacity-30 pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 mb-24 relative z-10 text-center space-y-7">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          className="label-caps px-6 py-2 rounded-full bg-primary/10 border border-primary/20 inline-flex"
-        >
-          Wall of Love
-        </motion.div>
         <motion.h2
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -81,28 +70,18 @@ export function Testimonials() {
         >
           People <span className="text-gradient">Love</span> VibeVids 💖
         </motion.h2>
-        <p className="text-xl text-muted-foreground font-medium max-w-2xl mx-auto leading-relaxed">
-          Join 50,000+ people sending magical AI video gifts to the people they
-          love.
+        <p className="text-lg text-muted-foreground font-medium max-w-2xl mx-auto leading-relaxed">
+          Join 50,000+ people sending magical AI vibes to the people they love.
         </p>
       </div>
 
       <div className="flex flex-col gap-8 relative overflow-visible">
-        {/* Extreme Performance Overlays: Using zero-cost gradients instead of mask-image */}
         <div className="absolute left-0 top-0 bottom-0 w-64 bg-gradient-to-r from-background to-transparent z-30 pointer-events-none" />
         <div className="absolute right-0 top-0 bottom-0 w-64 bg-gradient-to-l from-background to-transparent z-30 pointer-events-none" />
 
         <div className="flex overflow-visible py-24 -my-24 overflow-x-hidden">
           <div className="flex gap-10 whitespace-nowrap px-10 animate-marquee will-change-transform">
-            {firstRow.map((review, i) => (
-              <TestimonialCard key={i} review={review} />
-            ))}
-          </div>
-        </div>
-
-        <div className="flex overflow-visible py-24 -my-24 overflow-x-hidden">
-          <div className="flex gap-10 whitespace-nowrap px-10 animate-marquee-reverse will-change-transform">
-            {secondRow.map((review, i) => (
+            {[...reviews, ...reviews].map((review, i) => (
               <TestimonialCard key={i} review={review} />
             ))}
           </div>
@@ -193,27 +172,17 @@ export function Pricing({ onCreateClick }: { onCreateClick: () => void }) {
   ];
 
   return (
-    <section className="py-32 px-6 max-w-7xl mx-auto" id="pricing">
-      <div className="text-center mb-28 space-y-7">
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          className="label-caps px-5 py-2 rounded-full bg-primary/10 border border-primary/20 inline-flex"
-        >
-          Pricing Plans
-        </motion.div>
+    <section className="py-16 px-6 max-w-7xl mx-auto" id="pricing">
+      <div className="text-center mb-10 space-y-7">
         <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground tracking-tight leading-tight mb-4">
           Simple Pricing
         </h2>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed font-medium">
-          Pay only for what you need. <br className="hidden md:block" />
-          <span className="text-primary">
-            No subscriptions. No hidden fees.
-          </span>
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed font-medium">
+          One-time payments. No subscriptions. No hidden fees.
         </p>
       </div>
 
-      <div className="flex justify-center mb-24">
+      <div className="flex justify-center mb-12">
         <div className="inline-flex items-center glass p-2 rounded-full border border-black/10 dark:border-white/10 relative">
           {(Object.keys(prices) as Array<keyof typeof prices>).map((curr) => (
             <button
@@ -246,16 +215,16 @@ export function Pricing({ onCreateClick }: { onCreateClick: () => void }) {
             className={cn(
               "flex flex-col transition-all rounded-xl overflow-visible group relative",
               tier.popular
-                ? "border-primary bg-card lg:scale-110 z-20 border-2 ring-offset-background ring-offset-4 ring-primary"
-                : "border-border/50 bg-card hover:border-primary/20 hover:scale-[1.02] active:scale-95"
+                ? "border-primary bg-primary/[0.02] lg:scale-105 z-20 border ring-offset-background ring-offset-4 ring-primary/20"
+                : "border-border/50 bg-card"
             )}
           >
             {tier.popular && (
               <div className="absolute inset-0 bg-primary/[0.03] pointer-events-none" />
             )}
             {tier.popular && (
-              <div className="absolute top-8 left-1/2 -translate-x-1/2 label-caps bg-primary text-white px-5 py-1.5 rounded-full">
-                RECOMMENDED
+              <div className="absolute top-8 left-1/2 -translate-x-1/2 label-caps bg-primary text-white px-5 py-1.5 rounded-full whitespace-nowrap">
+                VALENTINE'S SPECIAL
               </div>
             )}
 

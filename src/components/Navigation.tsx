@@ -27,18 +27,24 @@ export function Navbar({
         >
           VibeVids.ai
         </div>
-        <div className="hidden lg:flex items-center gap-10 font-semibold text-[12px] uppercase tracking-[0.1em] text-foreground/70">
-          <a
-            href="#demos"
-            className="focus:outline-none hover:text-primary transition-all cursor-pointer"
-          >
-            Demos
-          </a>
+        <div className="hidden lg:flex items-center gap-14 font-semibold text-[12px] uppercase tracking-[0.15em] text-foreground/70">
           <a
             href="#how-it-works"
             className="focus:outline-none hover:text-primary transition-all cursor-pointer"
           >
             How it works
+          </a>
+          <a
+            href="#demos"
+            className="focus:outline-none hover:text-primary transition-all cursor-pointer"
+          >
+            Gallery
+          </a>
+          <a
+            href="#social"
+            className="focus:outline-none hover:text-primary transition-all cursor-pointer"
+          >
+            Wall of Love
           </a>
           <a
             href="#pricing"
@@ -47,12 +53,12 @@ export function Navbar({
             Pricing
           </a>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-6">
           <Button
             variant="ghost"
             size="icon"
             onClick={toggleTheme}
-            className="rounded-full w-9 h-9 border border-black/5 dark:border-white/5 cursor-pointer hover:bg-muted/50 transition-colors"
+            className="rounded-full w-9 h-9 border border-border cursor-pointer hover:bg-muted transition-colors"
           >
             {isDark ? (
               <Sun className="w-4 h-4" />
@@ -62,17 +68,17 @@ export function Navbar({
           </Button>
           <Button
             variant="secondary"
-            className="text-[12px] font-semibold uppercase tracking-wider cursor-pointer px-6 h-9 transition-all active:scale-95 rounded-full"
+            className="text-[12px] font-bold h-9 px-6 rounded-full"
             onClick={onLogin}
           >
             Login
           </Button>
           <Button
             variant="premium"
-            className="text-[12px] font-semibold uppercase tracking-wider px-7 h-9 rounded-full shrink-0 cursor-pointer transition-all active:scale-95 relative group overflow-hidden"
+            className="text-[12px] font-bold uppercase tracking-wider px-8 h-10 rounded-full shrink-0 cursor-pointer transition-all active:scale-95 relative group overflow-hidden"
             onClick={onCreateClick}
           >
-            <span className="relative z-10">Create Now</span>
+            <span className="relative z-10">Create Vibe</span>
             <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           </Button>
         </div>
@@ -90,8 +96,7 @@ export function Footer() {
             VibeVids.ai
           </h3>
           <p className="text-muted-foreground max-w-xs leading-relaxed font-medium">
-            Personalized AI video gifts for the people you love. Surprise them
-            with magic.
+            Personalized AI video gifts. Surprise them with magic.
           </p>
         </div>
         <div className="flex flex-col md:flex-row gap-12 md:gap-24">

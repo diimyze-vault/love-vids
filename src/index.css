@@ -82,7 +82,7 @@ html {
 
 @layer base {
   * {
-    border-color: var(--border);
+    border-color: hsl(var(--border));
   }
 
   :focus,
@@ -107,7 +107,7 @@ html {
     -webkit-box-shadow: 0 0 0 1000px #0a0a0a inset !important;
   }
   body {
-    background-color: var(--background);
+    background-color: hsl(var(--background));
     background-image: radial-gradient(
         at 100% 0%,
         hsla(346, 77%, 50%, 0.03) 0px,
@@ -132,6 +132,7 @@ html {
   }
 
   .dark body {
+    background-color: hsl(var(--background));
     background-image: radial-gradient(
         at 100% 0%,
         hsla(335, 84%, 65%, 0.1) 0px,
@@ -245,15 +246,15 @@ html {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(255, 255, 255, 0.85);
+  background: hsla(var(--background) / 0.85);
   backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid hsl(var(--border) / 0.5);
   transition: all 0.3s ease;
 }
 
 .dark .nav-sticky {
-  background: rgba(3, 7, 18, 0.85);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: hsla(var(--background) / 0.85);
+  border-bottom: 1px solid hsl(var(--border) / 0.5);
 }
 /* Browser Reset for Premium Inputs */
 input:-webkit-autofill,

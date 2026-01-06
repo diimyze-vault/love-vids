@@ -169,9 +169,9 @@ export function CreateWizard({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Boutique Glow */}
-        <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-primary/5 to-primary/20 blur-2xl rounded-[40px] opacity-100" />
+        <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-primary/5 to-primary/20 blur-2xl rounded-2xl opacity-100" />
 
-        <div className="relative bg-background border border-border dark: rounded-[32px] overflow-hidden flex flex-col">
+        <div className="relative bg-background border border-border rounded-2xl overflow-hidden flex flex-col">
           <button
             className="focus:outline-none absolute right-6 top-6 w-10 h-10 rounded-full bg-muted/50 hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-all z-50 cursor-pointer border border-border"
             onClick={onClose}
@@ -179,14 +179,11 @@ export function CreateWizard({
             <span className="text-xl leading-none">×</span>
           </button>
 
-          <div className="p-10 lg:p-12">
+          <div className="p-8 lg:p-10">
             {/* STEP 1: AUTHENTICATION */}
             {step === 1 && (
               <div className="animate-in fade-in duration-700">
-                <div className="text-center mb-10">
-                  <div className="label-caps px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-5 inline-flex">
-                    secure access
-                  </div>
+                <div className="text-center mb-8">
                   <h2 className="text-3xl font-bold text-foreground tracking-tight mb-2">
                     {isSignUp ? "Create account" : "Welcome back"}
                   </h2>
