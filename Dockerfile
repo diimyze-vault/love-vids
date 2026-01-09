@@ -12,7 +12,8 @@ FROM nginx:alpine
 RUN rm -rf /etc/nginx/conf.d/* /docker-entrypoint.d/*
 
 COPY --from=build /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/nginx.conf.template
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
 
 ENTRYPOINT []
-CMD ["sh", "-c", "sed -i 's/__PORT__/'${PORT:-80}'/g' /etc/nginx/nginx.conf.template && cp /etc/nginx/nginx.conf.template /etc/nginx/nginx.conf && exec nginx -g 'daemon off;'"]
+CMD ["/start.sh"]
