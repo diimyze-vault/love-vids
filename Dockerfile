@@ -13,9 +13,13 @@ RUN npm run build
 # Stage 2: Serving
 FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf.template
+
+# Nginx native support for env vars in templates (since 1.19)
+# It will look for .template files here and output to /etc/nginx/conf.d/
+COPY nginx.conf /etc/nginx/templates/default.conf.template
 
 EXPOSE 80
 ENV PORT=80
 
-CMD ["/bin/sh", "-c", "envsubst '${PORT}' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"]
+# The default nginx:alpine entrypoint handles the envsubst automatically
+CMD ["nginx", "-g", "daemon off;"]
