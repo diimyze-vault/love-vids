@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { cn } from "../lib/utils";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 export function Testimonials() {
   const reviews = [
@@ -56,6 +56,35 @@ export function Testimonials() {
     },
   ];
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = () => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1);
+    }
+  };
+
+  useEffect(() => {
+    checkScroll();
+    window.addEventListener("resize", checkScroll);
+    return () => window.removeEventListener("resize", checkScroll);
+  }, []);
+
+  const scroll = (direction: "left" | "right") => {
+    if (scrollRef.current) {
+      const { clientWidth } = scrollRef.current;
+      const scrollTo =
+        direction === "left"
+          ? scrollRef.current.scrollLeft - clientWidth / 2
+          : scrollRef.current.scrollLeft + clientWidth / 2;
+      scrollRef.current.scrollTo({ left: scrollTo, behavior: "smooth" });
+    }
+  };
+
   return (
     <section className="py-16 relative overflow-visible" id="social">
       <div className="absolute top-0 left-1/2 w-[1000px] h-[1000px] bg-primary/5 blur-[160px] rounded-full -translate-x-1/2 -translate-y-1/2 opacity-20 dark:opacity-30 pointer-events-none" />
@@ -75,14 +104,60 @@ export function Testimonials() {
         </p>
       </div>
 
-      <div className="flex flex-col gap-8 relative overflow-visible">
-        <div className="absolute left-0 top-0 bottom-0 w-64 bg-gradient-to-r from-background to-transparent z-30 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-64 bg-gradient-to-l from-background to-transparent z-30 pointer-events-none" />
+      <div className="flex flex-col gap-8 relative overflow-visible group">
+        <div className="absolute left-0 top-0 bottom-0 w-32 md:w-64 bg-gradient-to-r from-background to-transparent z-30 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-32 md:w-64 bg-gradient-to-l from-background to-transparent z-30 pointer-events-none" />
 
-        <div className="flex overflow-hidden py-24 -my-24 group">
-          <div className="flex gap-10 whitespace-nowrap px-10 animate-marquee will-change-transform group-hover:[animation-play-state:paused]">
-            {[...reviews, ...reviews].map((review, i) => (
-              <TestimonialCard key={i} review={review} />
+        <AnimatePresence>
+          {canScrollLeft && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="absolute top-1/2 -translate-y-1/2 left-4 md:left-8 lg:left-12 z-50 flex lg:opacity-0 lg:group-hover:opacity-100 transition-opacity"
+            >
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => scroll("left")}
+                className="w-10 h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full bg-background/80 backdrop-blur-md border border-border/50 shadow-lg flex items-center justify-center text-foreground cursor-pointer"
+              >
+                ←
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {canScrollRight && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="absolute top-1/2 -translate-y-1/2 right-4 md:right-8 lg:right-12 z-50 flex lg:opacity-0 lg:group-hover:opacity-100 transition-opacity"
+            >
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => scroll("right")}
+                className="w-10 h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full bg-background/80 backdrop-blur-md border border-border/50 shadow-lg flex items-center justify-center text-foreground cursor-pointer"
+              >
+                →
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div
+          ref={scrollRef}
+          onScroll={checkScroll}
+          className="flex overflow-x-auto py-12 -my-12 no-scrollbar group snap-x snap-mandatory scroll-smooth"
+        >
+          <div className="flex gap-6 md:gap-10 px-6 md:px-10 animate-marquee will-change-transform group-hover:[animation-play-state:paused]">
+            {[...reviews, ...reviews, ...reviews].map((review, i) => (
+              <div key={i} className="snap-center">
+                <TestimonialCard review={review} />
+              </div>
             ))}
           </div>
         </div>
@@ -208,14 +283,14 @@ export function Pricing({ onCreateClick }: { onCreateClick: () => void }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
         {tiers.map((tier, idx) => (
           <Card
             key={idx}
             className={cn(
               "flex flex-col transition-all rounded-xl overflow-visible group relative",
               tier.popular
-                ? "border-primary bg-primary/[0.02] lg:scale-105 z-20 border ring-offset-background ring-offset-4 ring-primary/20"
+                ? "border-primary bg-primary/[0.02] border ring-offset-background ring-offset-4 ring-primary/20"
                 : "border-border/50 bg-card"
             )}
           >
@@ -223,21 +298,21 @@ export function Pricing({ onCreateClick }: { onCreateClick: () => void }) {
               <div className="absolute inset-0 bg-primary/[0.03] pointer-events-none" />
             )}
             {tier.popular && (
-              <div className="absolute top-8 left-1/2 -translate-x-1/2 label-caps bg-primary text-white px-5 py-1.5 rounded-full whitespace-nowrap">
+              <div className="absolute -top-3 lg:top-8 left-1/2 -translate-x-1/2 label-caps bg-primary text-white px-3 lg:px-5 py-1 rounded-full whitespace-nowrap text-[8px] lg:text-[10px] z-30">
                 VALENTINE'S SPECIAL
               </div>
             )}
 
             <div
               className={cn(
-                "p-10 space-y-8 flex-grow",
-                tier.popular && "pt-20"
+                "p-4 lg:p-10 space-y-4 lg:space-y-8 flex-grow",
+                tier.popular && "pt-6 lg:pt-20"
               )}
             >
-              <div className="space-y-2">
+              <div className="space-y-1 lg:space-y-2">
                 <h3
                   className={cn(
-                    "text-2xl font-semibold tracking-tight leading-none",
+                    "text-sm lg:text-2xl font-bold tracking-tight leading-tight",
                     tier.color === "gradient"
                       ? "text-gradient"
                       : "text-foreground"
@@ -245,34 +320,46 @@ export function Pricing({ onCreateClick }: { onCreateClick: () => void }) {
                 >
                   {tier.name}
                 </h3>
-                <p className="text-xs font-medium text-muted-foreground">
+                <p className="text-[10px] lg:text-xs font-medium text-muted-foreground">
                   {tier.desc}
                 </p>
               </div>
 
               <div className="flex items-baseline gap-1">
-                <span className="text-5xl font-semibold tracking-tight text-foreground">
+                <span className="text-2xl lg:text-5xl font-bold tracking-tight text-foreground">
                   {current.symbol}
                   {current.rates[idx]}
                 </span>
-                <span className="font-bold italic text-sm text-muted-foreground/50">
+                <span className="font-bold italic text-[10px] lg:text-sm text-muted-foreground/50">
                   /video
                 </span>
               </div>
 
-              <div className="space-y-4 pt-4">
-                <Feature text={tier.quality} />
-                <Feature text={tier.duration} />
-                <Feature text="Quick Rendering" />
-                <Feature text="No Watermark" />
+              <div className="space-y-2 lg:space-y-4 pt-2 lg:pt-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[8px]">
+                    ✓
+                  </div>
+                  <span className="text-[10px] lg:text-[13px] font-semibold tracking-tight text-foreground/90">
+                    {tier.quality}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[8px]">
+                    ✓
+                  </div>
+                  <span className="text-[10px] lg:text-[13px] font-semibold tracking-tight text-foreground/90">
+                    {tier.duration}
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div className="p-10 pt-0">
+            <div className="p-4 lg:p-10 pt-0">
               <Button
                 variant={tier.popular ? "premium" : "secondary"}
                 className={cn(
-                  "w-full py-7 rounded-full font-semibold text-[11px] uppercase tracking-wider transition-all active:scale-95"
+                  "w-full h-10 lg:h-14 py-0 rounded-full font-bold text-[9px] lg:text-[11px] uppercase tracking-wider transition-all active:scale-95"
                 )}
                 onClick={onCreateClick}
               >
@@ -283,18 +370,5 @@ export function Pricing({ onCreateClick }: { onCreateClick: () => void }) {
         ))}
       </div>
     </section>
-  );
-}
-
-function Feature({ text }: { text: string }) {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px]">
-        ✓
-      </div>
-      <span className="text-[13px] font-semibold tracking-tight text-foreground/90">
-        {text}
-      </span>
-    </div>
   );
 }

@@ -89,48 +89,50 @@ export function Hero({ onCreateClick }: { onCreateClick: () => void }) {
 
   return (
     <div className="relative flex flex-col lg:flex-row items-center justify-between max-w-7xl mx-auto px-6 py-6 lg:py-0 gap-8 lg:gap-20 lg:min-h-[calc(100vh-100px)] overflow-visible">
-      <div className="w-full lg:w-[42%] text-center lg:text-left space-y-6 lg:space-y-9 z-10 order-2 lg:order-1">
-        <div className="space-y-4">
+      <div className="w-full lg:w-[45%] text-left space-y-8 lg:space-y-10 z-10 order-2 lg:order-1 pt-12 lg:pt-0">
+        <div className="space-y-6">
           <motion.h1
             custom={1}
             initial="hidden"
             animate="visible"
             variants={entranceVariants}
-            className="text-3xl md:text-5xl lg:text-6xl font-bold leading-[1.02] tracking-tight text-foreground"
+            className="text-5xl md:text-5xl lg:text-7xl font-bold leading-[1.05] tracking-tight text-foreground"
           >
             Vibe Checks into <br className="hidden lg:block" />
             <span className="text-gradient">Viral Videos</span> 🎥
           </motion.h1>
-        </div>
 
-        <motion.p
-          custom={2}
-          initial="hidden"
-          animate="visible"
-          variants={entranceVariants}
-          className="text-base lg:text-lg text-muted-foreground max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium"
-        >
-          Upload a photo. Pick a vibe. Get a stunning AI video in seconds.
-          Perfect for Valentine's, Birthdays or Roasts.
-        </motion.p>
+          <motion.p
+            custom={2}
+            initial="hidden"
+            animate="visible"
+            variants={entranceVariants}
+            className="text-lg lg:text-xl text-muted-foreground max-w-2xl leading-relaxed font-medium opacity-80"
+          >
+            Upload a photo. Pick a vibe. Get a stunning AI video in seconds.
+            Perfect for Valentine's, Birthdays or Roasts.
+          </motion.p>
+        </div>
 
         <motion.div
           custom={3}
           initial="hidden"
           animate="visible"
           variants={entranceVariants}
-          className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-2"
+          className="flex pt-4"
         >
           <Button
             size="lg"
             variant="premium"
-            className="text-[14px] px-12 py-6 h-auto rounded-full relative group overflow-hidden cursor-pointer transition-all active:scale-95"
+            className="group relative h-16 pl-8 pr-3 rounded-full bg-black dark:bg-white text-white dark:text-black hover:scale-[1.02] active:scale-95 transition-all duration-300 flex items-center gap-6 border-0 shadow-2xl shadow-primary/20"
             onClick={onCreateClick}
           >
-            <span className="relative z-10 font-bold tracking-wider uppercase">
-              SEND A VIBE 🎁
+            <span className="text-sm font-bold tracking-widest uppercase">
+              Send a Magic Gift
             </span>
-            <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="w-10 h-10 rounded-full bg-white dark:bg-black flex items-center justify-center text-black dark:text-white transition-transform duration-500 group-hover:rotate-45">
+              <span className="text-lg font-bold">→</span>
+            </div>
           </Button>
         </motion.div>
       </div>
@@ -139,7 +141,7 @@ export function Hero({ onCreateClick }: { onCreateClick: () => void }) {
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 1.2, ease: [0.23, 1, 0.32, 1], delay: 0.2 }}
-        className="w-full lg:w-[52%] relative flex items-center justify-center lg:justify-end mt-12 lg:mt-0 z-20 order-1 lg:order-2 px-4 md:px-0"
+        className="hidden lg:flex w-full lg:w-[50%] relative items-center justify-center lg:justify-end mt-12 lg:mt-0 z-20 order-1 lg:order-2 px-4 md:px-0"
       >
         <div className="relative w-full max-w-[280px] md:max-w-[320px] lg:max-w-[350px] aspect-[9/16] perspective-2000 preserve-3d">
           <div className="absolute top-1/2 -translate-y-1/2 left-2 md:-left-16 lg:-left-20 z-50">

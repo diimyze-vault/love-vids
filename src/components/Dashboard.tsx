@@ -20,7 +20,10 @@ import {
   Copy,
   Shield,
   Menu,
+  Trash2,
 } from "lucide-react";
+import { api } from "../lib/api";
+import { useEffect } from "react";
 
 type Tab = "gallery" | "rewards" | "settings";
 
@@ -28,6 +31,8 @@ export function Dashboard({
   onCreateClick,
   onLogout,
   user,
+  profile,
+  setProfile,
   isLoggingOut,
   isDark,
   toggleTheme,
@@ -35,29 +40,42 @@ export function Dashboard({
   onCreateClick: () => void;
   onLogout: () => void;
   user: User;
+  profile: any;
+  setProfile: (p: any) => void;
   isLoggingOut?: boolean;
   isDark?: boolean;
   toggleTheme?: () => void;
 }) {
   const [activeTab, setActiveTab] = useState<Tab>("gallery");
 
-  const [videos] = useState([
-    {
-      id: 1,
-      title: "Birthday Roast for Mike",
-      date: "2 mins ago",
-      status: "Processing",
-      thumbnail: "",
-    },
-    {
-      id: 2,
-      title: "Anniversary Surprise",
-      date: "2 days ago",
-      status: "Ready",
-      thumbnail: "https://picsum.photos/seed/dash1/300/169",
-      url: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
-    },
-  ]);
+  const [videos, setVideos] = useState<any[]>([]);
+  const [referralStats, setReferralStats] = useState<any>(null);
+  const [, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [profileRes, statsRes] = await Promise.all([
+          api.getProfile(),
+          api.getReferralStats(),
+        ]);
+
+        if (profileRes.data) {
+          setProfile(profileRes.data);
+          setVideos(profileRes.data.videos || []);
+        }
+        if (statsRes.data) {
+          setReferralStats(statsRes.data);
+        }
+      } catch (err) {
+        console.error("Dashboard: Error fetching data", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [profile?.id]);
+  // Only re-fetch if identity changed or initial mount
 
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
   const [showReferral, setShowReferral] = useState(false);
@@ -118,6 +136,34 @@ export function Dashboard({
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
+  const handleDeleteVideo = async (videoId: string) => {
+    if (!confirm("Are you sure you want to delete this video?")) return;
+
+    setIsDeleting(videoId);
+    try {
+      const res = await api.deleteVideo(videoId);
+      if (res.status === "error") throw new Error(res.message);
+
+      setVideos((prev) => prev.filter((v) => v.id !== videoId));
+      if (profile?.profile) {
+        setProfile({
+          ...profile,
+          profile: {
+            ...profile.profile,
+            storage_used: Math.max(0, profile.profile.storage_used - 1),
+          },
+        });
+      }
+    } catch (err) {
+      console.error("Error deleting video:", err);
+      alert("Failed to delete video.");
+    } finally {
+      setIsDeleting(null);
+    }
+  };
+
   const navItems = [
     { id: "gallery", label: "My Videos", icon: Video },
     { id: "rewards", label: "Referrals", icon: Trophy },
@@ -147,8 +193,8 @@ export function Dashboard({
                   className={cn(
                     "group focus:outline-none w-full flex items-center gap-4 px-4 py-3 rounded-xl text-[11px] font-semibold uppercase tracking-wider transition-all duration-200 relative overflow-hidden cursor-pointer",
                     active
-                      ? "bg-primary text-white"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/10 border border-transparent"
+                      ? "bg-primary text-white shadow-lg shadow-primary/20"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/80 border border-transparent hover:border-border/50"
                   )}
                 >
                   <Icon
@@ -186,32 +232,18 @@ export function Dashboard({
           </button>
         </div>
 
-        <div className="flex items-center justify-between gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => toggleTheme?.()}
-            className="w-10 h-10 rounded-full border border-border/50 hover:bg-muted/40 transition-all text-muted-foreground hover:text-foreground bg-card"
-          >
-            {isDark ? (
-              <Sun className="w-4 h-4" />
-            ) : (
-              <Moon className="w-4 h-4" />
-            )}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={onLogout}
-            className="flex-1 h-11 rounded-full border-border/50 text-muted-foreground hover:text-red-500 hover:bg-red-50 hover:border-red-200 transition-all font-semibold text-[11px] uppercase tracking-wider"
-          >
-            {isLoggingOut ? (
-              <Spinner className="h-4 w-4" />
-            ) : (
-              <LogOut className="w-4 h-4 mr-2" />
-            )}
-            Sign Out
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          onClick={onLogout}
+          className="w-full h-11 rounded-full border-border/50 text-muted-foreground hover:text-red-500 hover:bg-red-50 hover:border-red-200 transition-all font-semibold text-[11px] uppercase tracking-wider"
+        >
+          {isLoggingOut ? (
+            <Spinner className="h-4 w-4" />
+          ) : (
+            <LogOut className="w-4 h-4 mr-2" />
+          )}
+          Sign Out
+        </Button>
       </div>
     </>
   );
@@ -260,26 +292,21 @@ export function Dashboard({
             >
               <Menu className="w-5 h-5" />
             </Button>
-            <div className="lg:hidden text-lg font-bold text-gradient tracking-tight">
-              VibeVids.ai
-            </div>
           </div>
 
           <div className="flex items-center gap-2 lg:gap-4">
-            <div className="hidden lg:block">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => toggleTheme?.()}
-                className="w-10 h-10 rounded-full border border-border/50 hover:bg-muted/40 transition-all text-muted-foreground hover:text-foreground bg-card"
-              >
-                {isDark ? (
-                  <Sun className="w-4 h-4" />
-                ) : (
-                  <Moon className="w-4 h-4" />
-                )}
-              </Button>
-            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => toggleTheme?.()}
+              className="w-10 h-10 rounded-full border border-border/50 hover:bg-muted/40 transition-all text-muted-foreground hover:text-foreground bg-card"
+            >
+              {isDark ? (
+                <Sun className="w-4 h-4" />
+              ) : (
+                <Moon className="w-4 h-4" />
+              )}
+            </Button>
 
             <Button
               onClick={onCreateClick}
@@ -314,7 +341,7 @@ export function Dashboard({
                       </p>
                     </div>
                     <div className="px-4 py-1.5 rounded-full bg-card border border-border/50 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      Storage: {videos.length} / 5
+                      Total: {videos.length}
                     </div>
                   </div>
 
@@ -333,23 +360,68 @@ export function Dashboard({
                         className="h-full"
                       >
                         <Card className="rounded-xl border border-border/50 overflow-hidden group hover:border-primary/40 transition-all flex flex-col h-full bg-card/60 backdrop-blur-xl border-b-2 border-b-primary/5">
-                          <div className="aspect-[9/16] bg-muted/40 relative overflow-hidden rounded-xl shrink-0 border-b border-border/20 isolate">
+                          <div className="aspect-[9/16] bg-muted/20 relative overflow-hidden rounded-xl shrink-0 border-b border-border/20 group">
+                            {/* 1. Video Background (always visible, plays on hover) */}
+                            {video.status === "ready" &&
+                              (video.video_url || video.url) && (
+                                <video
+                                  src={video.video_url || video.url}
+                                  poster={
+                                    video.thumbnail_url || video.thumbnail
+                                  }
+                                  className="w-full h-full object-cover absolute inset-0 z-10"
+                                  muted
+                                  loop
+                                  playsInline
+                                  onMouseEnter={(e) => e.currentTarget.play()}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.pause();
+                                    e.currentTarget.currentTime = 0;
+                                  }}
+                                />
+                              )}
+
+                            {/* 2. Static Thumbnail (visible by default) */}
                             <img
                               src={
+                                video.thumbnail_url ||
                                 video.thumbnail ||
                                 "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80"
                               }
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[1500ms]"
+                              className="w-full h-full object-cover absolute inset-0 transition-all duration-700 group-hover:scale-105 z-0"
+                              alt={video.title}
+                              loading="lazy"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src =
+                                  "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80";
+                              }}
                             />
 
-                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 z-20 flex flex-col items-center justify-center p-6 text-center">
+                            {/* 2b. Processing Overlay (if not ready) */}
+                            {video.status !== "ready" && (
+                              <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-30 flex flex-col items-center justify-center p-4 text-center">
+                                <Spinner className="w-8 h-8 text-primary mb-3" />
+                                <span className="text-[10px] font-bold text-white uppercase tracking-widest">
+                                  {video.status === "failed"
+                                    ? "Generation Failed"
+                                    : "Crafting Vibe..."}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* 3. Interactive Overlay */}
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-300 z-20 flex flex-col items-center justify-center p-6 text-center">
                               <div className="space-y-4 mb-8">
                                 <h4 className="text-lg font-semibold tracking-tight text-white leading-tight">
                                   {video.title}
                                 </h4>
                                 <div className="flex flex-col items-center gap-1">
                                   <p className="text-[10px] font-medium text-white/40 uppercase tracking-wider">
-                                    {video.date}
+                                    {video.created_at
+                                      ? new Date(
+                                          video.created_at
+                                        ).toLocaleDateString()
+                                      : video.date}
                                   </p>
                                   <div className="flex items-center gap-2 px-2 py-0.5 rounded-md bg-white/10 border border-white/10">
                                     <span className="text-[9px] font-medium text-white/60 uppercase">
@@ -361,10 +433,12 @@ export function Dashboard({
                               <div className="flex items-center gap-3">
                                 <Button
                                   size="sm"
-                                  onClick={() =>
-                                    video.url && setPlayingVideo(video.url)
-                                  }
-                                  className="rounded-full bg-primary text-white font-medium text-[11px] uppercase tracking-wider px-8 h-10 border-0 hover:scale-105 transition-transform active:scale-95"
+                                  disabled={video.status !== "ready"}
+                                  onClick={() => {
+                                    const url = video.video_url || video.url;
+                                    if (url) setPlayingVideo(url);
+                                  }}
+                                  className="rounded-full bg-primary text-white font-medium text-[11px] uppercase tracking-wider px-8 h-10 border-0 hover:scale-105 transition-transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                   Play
                                 </Button>
@@ -375,6 +449,22 @@ export function Dashboard({
                                 >
                                   <ExternalLink className="w-5 h-5" />
                                 </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteVideo(video.id);
+                                  }}
+                                  disabled={isDeleting === video.id}
+                                  className="w-10 h-10 rounded-full text-white/40 hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                                >
+                                  {isDeleting === video.id ? (
+                                    <Spinner className="w-4 h-4" />
+                                  ) : (
+                                    <Trash2 className="w-4 h-4" />
+                                  )}
+                                </Button>
                               </div>
                             </div>
                           </div>
@@ -382,9 +472,8 @@ export function Dashboard({
                       </motion.div>
                     ))}
 
-                    {Array.from({ length: 5 - videos.length }).map((_, i) => (
+                    {videos.length === 0 && (
                       <motion.div
-                        key={`empty-${i}`}
                         whileHover={{ y: -4 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={onCreateClick}
@@ -396,14 +485,14 @@ export function Dashboard({
                         </div>
                         <div className="text-center space-y-1 relative z-10">
                           <span className="block text-[11px] font-semibold uppercase tracking-wider group-hover:text-primary transition-colors">
-                            Available Slot
+                            Zero Masterpieces
                           </span>
                           <span className="text-[9px] font-medium opacity-40 uppercase tracking-wider block">
-                            Start new creation
+                            Start your first creation
                           </span>
                         </div>
                       </motion.div>
-                    ))}
+                    )}
                   </div>
                 </motion.div>
               )}
@@ -421,32 +510,31 @@ export function Dashboard({
                       Referrals
                     </h2>
                     <p className="text-sm text-muted-foreground font-medium opacity-70">
-                      Unlock additional high-fidelity rendering capabilities by
-                      expanding the network.
+                      Invite your friends and grow the VibeVids community.
                     </p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {[
                       {
-                        title: "HD Cinematic Upgrade",
-                        req: "5 Invites",
-                        current: 3,
-                        total: 5,
-                        icon: "🎟️",
-                        color: "bg-orange-500",
-                        border: "border-orange-500/20",
-                        desc: "Permanently unlock 720p HD rendering for every video you create.",
-                      },
-                      {
-                        title: "Ultra High-Fidelity",
-                        req: "10 Invites",
-                        current: 3,
-                        total: 10,
-                        icon: "🎬",
+                        title: "Referral Stats",
+                        req: "Successful Invites",
+                        current: referralStats?.successful_referrals || 0,
+                        total: referralStats?.successful_referrals || 0,
+                        icon: "🎁",
                         color: "bg-primary",
                         border: "border-primary/20",
-                        desc: "Master pro-tier 1080p renders with full neural depth and motion clarity.",
+                        desc: "Track how many people have joined VibeVids using your unique invite code.",
+                      },
+                      {
+                        title: "Invite Link",
+                        req: "Share",
+                        current: profile?.profile?.referral_code ? 1 : 0,
+                        total: 1,
+                        icon: "🔗",
+                        color: "bg-orange-500",
+                        border: "border-orange-500/20",
+                        desc: "Your unique link is active. Share it with your network to spread the vibes.",
                       },
                     ].map((reward, i) => (
                       <Card
@@ -474,16 +562,8 @@ export function Dashboard({
                               {reward.title}
                             </h3>
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted/50 border border-border/20">
-                              <div
-                                className={cn(
-                                  "w-1.5 h-1.5 rounded-full",
-                                  reward.current >= reward.total
-                                    ? "bg-emerald-500"
-                                    : "bg-primary animate-pulse"
-                                )}
-                              />
                               <span className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">
-                                {reward.req} REQUIRED
+                                {reward.req.toUpperCase()}
                               </span>
                             </div>
                           </div>
@@ -498,31 +578,28 @@ export function Dashboard({
                             <div className="flex justify-between items-end">
                               <div className="space-y-1">
                                 <p className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground/40">
-                                  Network Status
+                                  Stats
                                 </p>
-                                <p className="text-sm font-medium">
-                                  {Math.round(
-                                    (reward.current / reward.total) * 100
+                                <div className="space-y-1">
+                                  {reward.title === "Referral Stats" ? (
+                                    <>
+                                      <p className="text-sm font-medium">
+                                        {referralStats?.total_signups || 0}{" "}
+                                        TOTAL SIGNUPS
+                                      </p>
+                                      <p className="text-[10px] font-bold text-primary/60 uppercase tracking-widest leading-tight mt-1">
+                                        {referralStats?.successful_referrals ||
+                                          0}{" "}
+                                        VIDEOS MADE
+                                      </p>
+                                    </>
+                                  ) : (
+                                    <p className="text-sm font-medium">
+                                      {reward.current ? "ACTIVE" : "INACTIVE"}
+                                    </p>
                                   )}
-                                  % COMPLETE
-                                </p>
+                                </div>
                               </div>
-                              <span className="text-xs font-medium text-primary">
-                                {reward.current} / {reward.total}
-                              </span>
-                            </div>
-                            <div className="h-3 w-full bg-muted/50 rounded-full overflow-hidden border border-border-10">
-                              <div
-                                className={cn(
-                                  "h-full rounded-full transition-all duration-1000",
-                                  reward.color
-                                )}
-                                style={{
-                                  width: `${
-                                    (reward.current / reward.total) * 100
-                                  }%`,
-                                }}
-                              />
                             </div>
                           </div>
                         </div>
@@ -543,22 +620,21 @@ export function Dashboard({
                           The Invite Engine 🚀
                         </h3>
                         <p className="text-sm font-medium text-muted-foreground leading-relaxed max-w-xl">
-                          Every successful invitation permanently boosts your
-                          account's limit. Share your unique code and start
-                          collecting rewards.
+                          Share your unique referral code with friends. Help us
+                          build the most vibrant AI video community!
                         </p>
                       </div>
 
                       <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
                         <div className="bg-background border border-border/60 px-6 h-11 flex items-center rounded-xl font-mono text-primary font-medium select-all tracking-wider text-base">
-                          VIBE-MIKE-2024
+                          {profile?.profile?.referral_code || "LOADING..."}
                         </div>
                         <Button
                           onClick={() => setShowReferral(true)}
                           className="rounded-xl h-11 px-6 bg-primary text-white font-medium text-[11px] uppercase tracking-wider border-0 hover:scale-[1.02] transition-transform"
                         >
                           <Copy className="w-4 h-4 mr-3" />
-                          Copy Link
+                          Invite Friends
                         </Button>
                       </div>
                     </div>
@@ -754,10 +830,10 @@ export function Dashboard({
               <header className="p-6 border-b border-border/50 text-center space-y-3 relative overflow-hidden bg-muted/20">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-[60px] rounded-full" />
                 <h3 className="text-2xl font-semibold tracking-tight leading-none relative z-10">
-                  Invite Rewards 🔑
+                  Invite Friends 🔑
                 </h3>
                 <p className="text-sm text-muted-foreground font-medium opacity-70 relative z-10">
-                  Expand the network and boost your limit.
+                  Grow the VibeVids community.
                 </p>
               </header>
               <div className="p-6 space-y-8">
@@ -767,15 +843,24 @@ export function Dashboard({
                   </span>
                   <div className="bg-muted/40 p-6 rounded-xl border-2 border-dashed border-primary/30 text-center select-all group hover:border-primary/50 transition-colors">
                     <span className="text-3xl font-mono font-medium tracking-wider text-primary">
-                      VIBE-MIKE-2024
+                      {profile?.profile?.referral_code}
                     </span>
                   </div>
                 </div>
                 <div className="flex gap-3 pt-2">
                   <div className="flex-1 rounded-xl border border-border/60 h-11 bg-muted/20 flex items-center px-6 font-medium text-xs overflow-hidden whitespace-nowrap opacity-60">
-                    vibevids.ai/ref/user123...
+                    {window.location.origin}/?ref=
+                    {profile?.profile?.referral_code}
                   </div>
-                  <Button className="rounded-full h-11 px-8 bg-primary text-white text-[11px] font-semibold uppercase tracking-wider border-0 hover:scale-[1.02] transition-transform active:scale-95">
+                  <Button
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        `${window.location.origin}/?ref=${profile?.profile?.referral_code}`
+                      );
+                      alert("Link copied to clipboard!");
+                    }}
+                    className="rounded-full h-11 px-8 bg-primary text-white text-[11px] font-semibold uppercase tracking-wider border-0 hover:scale-[1.02] transition-transform active:scale-95"
+                  >
                     Copy
                   </Button>
                 </div>

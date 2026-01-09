@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function HowItWorks() {
@@ -29,6 +29,35 @@ export function HowItWorks() {
     },
   ];
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = () => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1);
+    }
+  };
+
+  useEffect(() => {
+    checkScroll();
+    window.addEventListener("resize", checkScroll);
+    return () => window.removeEventListener("resize", checkScroll);
+  }, []);
+
+  const scroll = (direction: "left" | "right") => {
+    if (scrollRef.current) {
+      const { clientWidth } = scrollRef.current;
+      const scrollTo =
+        direction === "left"
+          ? scrollRef.current.scrollLeft - clientWidth / 2
+          : scrollRef.current.scrollLeft + clientWidth / 2;
+      scrollRef.current.scrollTo({ left: scrollTo, behavior: "smooth" });
+    }
+  };
+
   const cardSpring: any = {
     type: "spring",
     stiffness: 60,
@@ -58,38 +87,83 @@ export function HowItWorks() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        {steps.map((step, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ ...cardSpring, delay: index * 0.1 }}
-            className="relative group p-10 rounded-2xl bg-card border border-border/50 hover:border-primary/50 transition-all duration-500 hover: flex flex-col items-center text-center overflow-hidden"
-          >
-            {/* Artistic Flair */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+      <div className="relative group">
+        <AnimatePresence>
+          {canScrollLeft && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="absolute top-1/2 -translate-y-1/2 -left-4 lg:-left-8 z-20"
+            >
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => scroll("left")}
+                className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-background/80 backdrop-blur-md border border-border/50 shadow-lg flex items-center justify-center text-foreground cursor-pointer"
+              >
+                ←
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-            <div className="relative mb-10">
-              <div className="w-20 h-20 rounded-xl bg-primary/5 flex items-center justify-center text-4xl relative group-hover:scale-110 transition-transform duration-500">
-                <span className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-[10px] font-semibold text-white border-2 border-card z-20">
-                  {step.id}
-                </span>
-                <span className="relative z-10">{step.icon}</span>
+        <AnimatePresence>
+          {canScrollRight && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="absolute top-1/2 -translate-y-1/2 -right-4 lg:-right-8 z-20"
+            >
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => scroll("right")}
+                className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-background/80 backdrop-blur-md border border-border/50 shadow-lg flex items-center justify-center text-foreground cursor-pointer"
+              >
+                →
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div
+          ref={scrollRef}
+          onScroll={checkScroll}
+          className="flex overflow-x-auto lg:grid lg:grid-cols-4 gap-6 md:gap-8 pb-8 lg:pb-0 no-scrollbar snap-x snap-mandatory scroll-smooth"
+        >
+          {steps.map((step, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ ...cardSpring, delay: index * 0.1 }}
+              className="relative group p-8 lg:p-10 rounded-2xl bg-card border border-border/50 hover:border-primary/50 transition-all duration-500 flex-none w-[280px] md:w-[320px] lg:w-auto snap-center flex flex-col items-center text-center overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+
+              <div className="relative mb-8 lg:mb-10">
+                <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-xl bg-primary/5 flex items-center justify-center text-3xl lg:text-4xl relative group-hover:scale-110 transition-transform duration-500">
+                  <span className="absolute -top-2 -right-2 lg:-top-3 lg:-right-3 w-7 h-7 lg:w-8 lg:h-8 rounded-full bg-primary flex items-center justify-center text-[9px] lg:text-[10px] font-semibold text-white border-2 border-card z-20">
+                    {step.id}
+                  </span>
+                  <span className="relative z-10">{step.icon}</span>
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-4">
-              <h3 className="text-xl font-bold group-hover:text-primary transition-colors duration-300 tracking-tight">
-                {step.title}
-              </h3>
-              <p className="text-[15px] text-muted-foreground leading-relaxed font-medium">
-                {step.desc}
-              </p>
-            </div>
-          </motion.div>
-        ))}
+              <div className="space-y-3 lg:space-y-4">
+                <h3 className="text-lg lg:text-xl font-bold group-hover:text-primary transition-colors duration-300 tracking-tight">
+                  {step.title}
+                </h3>
+                <p className="text-[14px] lg:text-[15px] text-muted-foreground leading-relaxed font-medium">
+                  {step.desc}
+                </p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -99,6 +173,37 @@ export function DemoVideos() {
   const [playingMap, setPlayingMap] = useState<{ [key: number]: boolean }>({});
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = () => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } =
+        scrollContainerRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1);
+    }
+  };
+
+  useEffect(() => {
+    checkScroll();
+    window.addEventListener("resize", checkScroll);
+    return () => window.removeEventListener("resize", checkScroll);
+  }, []);
+
+  const scroll = (direction: "left" | "right") => {
+    if (scrollContainerRef.current) {
+      const { clientWidth } = scrollContainerRef.current;
+      const scrollTo =
+        direction === "left"
+          ? scrollContainerRef.current.scrollLeft - clientWidth / 2
+          : scrollContainerRef.current.scrollLeft + clientWidth / 2;
+      scrollContainerRef.current.scrollTo({
+        left: scrollTo,
+        behavior: "smooth",
+      });
+    }
+  };
 
   const demos = [
     {
@@ -157,7 +262,6 @@ export function DemoVideos() {
       className="py-16 max-w-[100vw] relative bg-background overflow-visible"
       id="demos"
     >
-      {/* Background Flair: Atmospheric localized glows */}
       <div className="absolute top-0 left-1/3 w-[500px] h-[500px] bg-primary/10 blur-[120px] rounded-full -translate-y-1/2 opacity-40 pointer-events-none" />
       <div className="absolute bottom-0 right-1/3 w-[500px] h-[500px] bg-primary/5 blur-[120px] rounded-full translate-y-1/2 opacity-30 pointer-events-none" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 blur-[150px] rounded-full opacity-20 pointer-events-none" />
@@ -177,8 +281,49 @@ export function DemoVideos() {
       </div>
 
       <div className="relative group overflow-visible">
+        <AnimatePresence>
+          {canScrollLeft && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="absolute top-1/2 -translate-y-1/2 left-4 md:left-8 lg:left-12 z-50 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity"
+            >
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => scroll("left")}
+                className="w-10 h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full bg-background/80 backdrop-blur-md border border-border/50 shadow-lg flex items-center justify-center text-foreground cursor-pointer"
+              >
+                ←
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {canScrollRight && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="absolute top-1/2 -translate-y-1/2 right-4 md:right-8 lg:right-12 z-50 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity"
+            >
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => scroll("right")}
+                className="w-10 h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full bg-background/80 backdrop-blur-md border border-border/50 shadow-lg flex items-center justify-center text-foreground cursor-pointer"
+              >
+                →
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <div
           ref={scrollContainerRef}
+          onScroll={checkScroll}
           className="flex overflow-x-auto gap-8 px-[max(1.5rem,calc((100vw-1280px)/2+1.5rem))] py-12 no-scrollbar snap-x snap-mandatory scroll-smooth"
         >
           {demos.map((demo, idx) => (

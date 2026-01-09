@@ -1,0 +1,11 @@
+{
+  "build": {
+    "builder": "DOCKERFILE"
+  },
+  "deploy": {
+    "numReplicas": 1,
+    "sleepApplication": false,
+    "healthcheckPath": "/",
+    "healthcheckTimeout": 100
+  }
+}

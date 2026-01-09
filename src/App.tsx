@@ -17,14 +17,20 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Button } from "./components/ui/button";
 import { FullPageSpinner } from "./components/ui/spinner";
+import { api } from "./lib/api";
 
 function App() {
   const [showWizard, setShowWizard] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<any>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isPasswordReset, setIsPasswordReset] = useState(false);
+  const [referralCode, setReferralCode] = useState<string | undefined>(
+    undefined
+  );
+  const [startWithSignUp, setStartWithSignUp] = useState(false);
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("theme") === "dark";
@@ -80,41 +86,44 @@ function App() {
       setShowWizard(true);
     }
 
-    // Check active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log("[App] Initial Session:", session);
-      // Cast to any to access amr which is missing in type defs
-      const user = session?.user as any;
-      if (user?.amr) {
-        console.log("[App] AMR:", user.amr);
-      }
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    const ref = params.get("ref");
+    if (ref) {
+      console.log("[App] Found referral code:", ref);
+      setReferralCode(ref);
+    }
 
-    // Listen for changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth Event:", event);
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      // CLEAR LOADING IMMEDIATELY
+      setLoading(false);
+
       if (session) {
-        // Check for recovery in AMR array (authentication method reference)
-        const user = session.user as any;
-        const amr = user?.amr;
-        console.log("[App] Auth Change AMR:", amr);
+        setUser(session.user);
 
-        if (
-          amr &&
-          Array.isArray(amr) &&
-          amr.some((m: any) => m.method === "recovery")
-        ) {
-          console.log("[App] AMR contains recovery! Activating wizard.");
-          setIsPasswordReset(true);
-          setShowWizard(true);
+        // Sync with backend on sign in
+        if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
+          api
+            .syncProfile(referralCode)
+            .then((res) => {
+              if (res.data) setProfile(res.data);
+            })
+            .catch((err) => {
+              console.error("[App] Sync Error:", err);
+            });
+        } else if (!profile) {
+          // Fetch profile if we just refreshed and have a session but no profile yet
+          api
+            .getProfile()
+            .then((res) => {
+              if (res.data) setProfile(res.data);
+            })
+            .catch((err) => console.error("[App] Profile fetch error:", err));
         }
+      } else {
+        setUser(null);
+        setProfile(null);
       }
-
-      setUser(session?.user ?? null);
 
       if (event === "PASSWORD_RECOVERY") {
         setIsPasswordReset(true);
@@ -123,20 +132,10 @@ function App() {
 
       if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
         setIsAuthLoading(false);
-
-        const hashCheck = window.location.hash;
-        if (hashCheck && hashCheck.includes("type=recovery")) {
-          setIsPasswordReset(true);
-          setShowWizard(true);
-        }
-
-        // Force cleanup of ?code= in URL
         const url = new URL(window.location.href);
         if (url.searchParams.has("code")) {
           url.searchParams.delete("code");
-          if (url.searchParams.has("reset_flow")) {
-            url.searchParams.delete("reset_flow");
-          }
+          url.searchParams.delete("reset_flow");
           window.history.replaceState({}, "", url.toString());
         }
       }
@@ -144,6 +143,29 @@ function App() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (user && referralCode) {
+      console.log("[App] Syncing referral code:", referralCode);
+      api
+        .syncProfile(referralCode)
+        .then((res) => {
+          if (res.data) setProfile(res.data);
+        })
+        .catch((err) => {
+          console.error("[App] Referral Sync Error:", err);
+        });
+    }
+  }, [user, referralCode]);
+
+  useEffect(() => {
+    // Auto-open wizard for referral links if not logged in
+    if (!loading && !user && referralCode) {
+      console.log("[App] Honoring referral link, opening wizard...");
+      setStartWithSignUp(true);
+      setShowWizard(true);
+    }
+  }, [loading, user, referralCode]);
 
   const handleGoogleLogin = async () => {
     setIsAuthLoading(true);
@@ -239,6 +261,8 @@ function App() {
             onCreateClick={() => setShowWizard(true)}
             onLogout={handleLogout}
             user={user}
+            profile={profile}
+            setProfile={setProfile}
             isLoggingOut={isLoggingOut}
             isDark={isDark}
             toggleTheme={() => setIsDark(!isDark)}
@@ -271,6 +295,7 @@ function App() {
           <CreateWizard
             onClose={() => {
               setShowWizard(false);
+              setStartWithSignUp(false); // Reset signup intent on close
               // If cancelling a password reset, just close the wizard.
               // The user is already logged in (via link), so they will see the Dashboard.
               if (isPasswordReset) {
@@ -279,6 +304,7 @@ function App() {
               }
             }}
             isLoggedIn={!!user}
+            profile={profile}
             onLogin={handleGoogleLogin}
             isAuthLoading={isAuthLoading}
             resetMode={isPasswordReset}
@@ -286,6 +312,9 @@ function App() {
               setIsPasswordReset(false);
               localStorage.removeItem("is_resetting_password"); // Consume flag on success
             }}
+            referralCode={referralCode}
+            onReferralChange={(code: string) => setReferralCode(code)}
+            initialSignUp={startWithSignUp}
           />
         )}
       </AnimatePresence>
