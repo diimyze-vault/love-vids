@@ -1,24 +1,19 @@
 # Stage 1: Build
 FROM node:20-slim AS build
 WORKDIR /app
-
-# Install dependencies
 COPY package*.json ./
 RUN npm install
-
-# Copy source and build
 COPY . .
 RUN npm run build
 
-# Stage 2: Serving
+# Stage 2: Serve
 FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
 
-# Nginx native support for env vars in templates (since 1.19)
-COPY nginx.conf /etc/nginx/templates/nginx.conf.template
-
-EXPOSE 80
 ENV PORT=80
+EXPOSE 80
 
-# The default nginx:alpine entrypoint handles the envsubst automatically
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["/start.sh"]
