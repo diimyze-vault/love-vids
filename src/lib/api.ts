@@ -1,7 +1,6 @@
 import { supabase } from "./supabase";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "https://api.vibevids.xyz/api/v1";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 async function getAuthHeaders() {
   const {
