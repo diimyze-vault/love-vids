@@ -5,7 +5,6 @@
   "deploy": {
     "numReplicas": 1,
     "sleepApplication": false,
-    "healthcheckPath": "/",
-    "healthcheckTimeout": 100
+    "restartPolicyType": "ON_FAILURE"
   }
 }
