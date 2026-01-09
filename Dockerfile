@@ -15,8 +15,7 @@ FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
 
 # Nginx native support for env vars in templates (since 1.19)
-# It will look for .template files here and output to /etc/nginx/conf.d/
-COPY nginx.conf /etc/nginx/templates/default.conf.template
+COPY nginx.conf /etc/nginx/templates/nginx.conf.template
 
 EXPOSE 80
 ENV PORT=80
