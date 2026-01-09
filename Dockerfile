@@ -15,7 +15,9 @@ RUN npm install -g serve
 
 COPY --from=build /app/dist ./dist
 
-# Use shell form to allow variable expansion
-# -s: Single Page App (rewrites to index.html)
-# -l: Listen on specific port/host
-CMD serve -s dist -l tcp://0.0.0.0:$PORT
+# FORCE PORT 4000 (Matching Railway Config)
+ENV PORT=4000
+EXPOSE 4000
+
+# Listen specifically on port 4000 to match Railway setting
+CMD ["serve", "-s", "dist", "-l", "tcp://0.0.0.0:4000"]
