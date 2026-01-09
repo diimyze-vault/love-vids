@@ -6,10 +6,16 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-# Stage 2: Serve with Node.js
+# Stage 2: Serve
 FROM node:20-slim
 WORKDIR /app
-COPY --from=build /app/dist ./dist
-COPY server.js ./
 
-CMD ["node", "server.js"]
+# Install 'serve' package globally
+RUN npm install -g serve
+
+COPY --from=build /app/dist ./dist
+
+# Use shell form to allow variable expansion
+# -s: Single Page App (rewrites to index.html)
+# -l: Listen on specific port/host
+CMD serve -s dist -l tcp://0.0.0.0:$PORT
