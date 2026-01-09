@@ -6,14 +6,10 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-# Stage 2: Serve
-FROM nginx:alpine
+# Stage 2: Serve with Node.js
+FROM node:20-slim
+WORKDIR /app
+COPY --from=build /app/dist ./dist
+COPY server.js ./
 
-RUN rm -rf /etc/nginx/conf.d/* /docker-entrypoint.d/*
-
-COPY --from=build /app/dist /usr/share/nginx/html
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
-
-ENTRYPOINT []
-CMD ["/start.sh"]
+CMD ["node", "server.js"]
