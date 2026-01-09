@@ -1,13 +1,15 @@
 #!/bin/sh
 set -e
 
-# Get the port, default to 80
 PORT=${PORT:-80}
 
-echo "Starting nginx on port $PORT"
+echo "=== DEBUG ==="
+echo "PORT: $PORT"
+echo "Files in /usr/share/nginx/html:"
+ls -la /usr/share/nginx/html/
+echo "============="
 
-# Create the config with the correct port
-cat > /etc/nginx/nginx.conf << EOF
+cat > /etc/nginx/nginx.conf << 'NGINXCONF'
 worker_processes 1;
 
 events {
@@ -20,9 +22,12 @@ http {
     sendfile on;
     keepalive_timeout 65;
     gzip on;
+    
+    error_log /dev/stderr debug;
+    access_log /dev/stdout;
 
     server {
-        listen $PORT;
+        listen PORT_PLACEHOLDER;
         server_name localhost;
 
         root /usr/share/nginx/html;
@@ -33,7 +38,7 @@ http {
         }
 
         location / {
-            try_files \$uri \$uri/ /index.html;
+            try_files $uri $uri/ /index.html;
         }
 
         location /assets/ {
@@ -41,7 +46,13 @@ http {
         }
     }
 }
-EOF
+NGINXCONF
 
-# Start nginx
+# Replace the port placeholder
+sed -i "s/PORT_PLACEHOLDER/$PORT/g" /etc/nginx/nginx.conf
+
+echo "=== NGINX CONFIG ==="
+cat /etc/nginx/nginx.conf
+echo "===================="
+
 exec nginx -g 'daemon off;'
